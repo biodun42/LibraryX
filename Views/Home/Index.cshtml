@@ -38,7 +38,7 @@
     <div class="relative max-w-9xl mx-auto px-2 sm:px-4 sm:px-6 lg:px-8 py-6 ">
         <div class="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
             <div class="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
-                <div class="relative z-10 animate-fade-in">
+                <div class="relative z-10 animate-fade-in mt-6 md:mt-14">
                     <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-primary-100 text-primary-800 mb-6 backdrop-blur-sm bg-opacity-80 shadow-lg">
                         <svg class="mr-1.5 h-2 w-2 text-primary-500" fill="currentColor" viewBox="0 0 8 8">
                             <circle cx="4" cy="4" r="3" />
@@ -179,13 +179,13 @@
                     else
                     {
                         <!-- Content for Non-Authenticated Users -->
-                        <p class="mt-6 text-base text-primary-100 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl max-w-lg backdrop-blur-md bg-primary-900/30 rounded-xl p-5 border border-primary-800/50 shadow-lg">
+                        <p class="mt-6 text-base text-primary-100 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl max-w-lg backdrop-blur-md bg-primary-900/30 rounded-xl p-3">
                             Discover, borrow, and manage your reading journey with our cutting-edge digital library platform. Access thousands of books, journals, and resources from anywhere.
                         </p>
                     }
                     
                     <div class="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
-                        <div class="mt-5 sm:mt-8 flex flex-col sm:flex sm:justify-center lg:justify-start gap-4">
+                        <div class="mt-5 flex flex-col sm:flex sm:justify-center lg:justify-start gap-4">
                             @if (User.Identity?.IsAuthenticated == true)
                             {
                                 <!-- CTA Buttons for Logged-in Users -->

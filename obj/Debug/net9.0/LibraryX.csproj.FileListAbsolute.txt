@@ -407,3 +407,4 @@ C:\Users\muham\Desktop\LibraryX\obj\Debug\net9.0\refint\LibraryX.dll
 C:\Users\muham\Desktop\LibraryX\obj\Debug\net9.0\LibraryX.pdb
 C:\Users\muham\Desktop\LibraryX\obj\Debug\net9.0\LibraryX.genruntimeconfig.cache
 C:\Users\muham\Desktop\LibraryX\obj\Debug\net9.0\ref\LibraryX.dll
+C:\Users\muham\Desktop\LibraryX\obj\Debug\net9.0\LibraryX.sourcelink.json
