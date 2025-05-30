@@ -1,0 +1,64 @@
+@{
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
+    {
+        Layout = parentLayout.ToString();
+    }
+    else
+    {
+        Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+    }
+}
+
+<div class="relative min-h-screen py-2 px-2 sm:py-6 sm:px-4 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900">
+    <div class="relative max-w-9xl mx-auto">
+        
+        <!-- Profile Header -->
+        <div class="bg-white/5 backdrop-blur-xl sm:rounded-2xl shadow-xl overflow-hidden sm:mb-4 border border-white/10">
+            <div class="px-2 py-4 sm:px-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="h-24 w-24 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-3xl shadow-lg border-4 border-white/10 relative overflow-hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 relative z-10" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="absolute inset-0 bg-gradient-to-tr from-primary-500/20 to-primary-300/20"></div>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h1 class="text-2xl font-bold text-white tracking-tight">Account Settings</h1>
+                            <p class="text-primary-200 text-md mt-1 tracking-wide">Manage your profile and preferences</p>
+                            <div class="mt-3 flex items-center space-x-1">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Verified Account
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area with Glass Morphism -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <!-- Sidebar -->
+            <div class="md:col-span-3">
+                <partial name="_ManageNav" />
+            </div>
+            
+            <!-- Content Area -->
+            <div class="md:col-span-9">
+                <div class="p-2 sm:p-4 shadow-xl border border-white/10">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

@@ -1,0 +1,780 @@
+@model LibraryX.Models.BookDetailViewModel
+@{
+    ViewData["Title"] = Model.Book?.VolumeInfo?.Title ?? "Book Details";
+    var bookTitle = Model.Book?.VolumeInfo?.Title ?? "Book Details";
+    var isAuthenticated = ViewData["IsAuthenticated"] as bool? == true;
+    var isBookSaved = ViewData["IsBookSaved"] as bool? == true;
+    var isBookDownloaded = ViewData["IsBookDownloaded"] as bool? == true;
+    var savedBookInfo = ViewData["SavedBookInfo"] as LibraryX.Models.SavedBook;
+    var downloadedBookInfo = ViewData["DownloadedBookInfo"] as LibraryX.Models.DownloadedBook;
+}
+
+<!-- Add a skip to main content link for accessibility -->
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-white focus:text-primary-900 focus:z-50">Skip to main content</a>
+
+<!-- Hero Section with Book Cover -->
+<div class="relative bg-gradient-to-r from-primary-900 to-primary-800 overflow-hidden">
+    <div class="absolute inset-0" aria-hidden="true">
+        <svg class="absolute bottom-0 left-0 transform translate-x-80 -translate-y-20 lg:translate-x-20 xl:-translate-y-20" width="404" height="384" fill="none" viewBox="0 0 404 384">
+            <defs>
+                <pattern id="d46db4a2-faf9-4911-a4b4-f7ac6a0bf2e5" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <rect x="0" y="0" width="4" height="4" class="text-primary-700" fill="currentColor" />
+                </pattern>
+            </defs>
+            <rect width="404" height="384" fill="url(#d46db4a2-faf9-4911-a4b4-f7ac6a0bf2e5)" />
+        </svg>
+    </div>
+    <div id="main-content" class="relative max-w-7xl mx-auto py-10 px-2 sm:py-24 sm:px-4 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+            <!-- Book Cover with proper alt text -->
+            <div class="flex-shrink-0 rounded-lg bg-white p-3 shadow-xl">
+                <div class="w-32 md:w-48 h-48 md:h-72 relative">
+                    <img src="@(Model.Book != null && Model.Book.VolumeInfo != null && Model.Book.VolumeInfo.ImageLinks?.BestAvailableImage != null ? Model.Book.VolumeInfo.ImageLinks.BestAvailableImage : "/images/no-cover.png")" 
+                         alt="Book cover for @(Model.Book?.VolumeInfo?.Title ?? "Unknown Title") by @(Model.Book?.VolumeInfo?.Authors != null ? string.Join(", ", Model.Book.VolumeInfo.Authors) : "Unknown Author")" 
+                         class="w-full h-full object-cover rounded shadow">
+                </div>
+            </div>
+            
+            <!-- Book Information -->
+            <div class="flex items-start flex-col text-center md:text-left">
+                <!-- Back to Catalog link with improved accessibility -->
+                <div class="mb-4">
+                    <a href="@Url.Action("Catalog", new { query = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage, viewMode = Model.ViewMode })" 
+                       class="inline-flex items-center text-primary-300 hover:text-primary-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-primary-800"
+                       aria-label="Return to @(Model.ViewMode == "academic" ? "Academic" : "Fiction") Catalog">
+                        <i class="fas fa-arrow-left mr-2" aria-hidden="true"></i>
+                        Back to_
+                        @if (Model.ViewMode == "academic")
+                        {
+                            <span>Academic Catalog</span>
+                        }
+                        else
+                        {
+                            <span>Fiction Catalog</span>
+                        }
+                    </a>
+                </div>
+                
+                <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl" tabindex="0">
+                    @bookTitle
+                </h1>
+                
+                @if (Model?.Book?.VolumeInfo?.Authors != null && Model.Book.VolumeInfo.Authors.Any())
+                {
+                    <p class="mt-2 text-xl text-primary-300">
+                        by @string.Join(", ", Model.Book.VolumeInfo.Authors)
+                    </p>
+                }
+                
+                <div class="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
+                    @if (Model?.Book?.VolumeInfo?.Categories != null)
+                    {
+                        foreach (var category in Model.Book.VolumeInfo.Categories)
+                        {
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-primary-700/50 text-primary-100 backdrop-blur-sm">
+                                @category
+                            </span>
+                        }
+                    }
+                </div>
+                
+                <div class="mt-6 flex flex-wrap gap-6 items-center justify-center md:justify-start">
+                    @if (Model.Book.VolumeInfo.AverageRating.HasValue)
+                    {
+                        <div class="flex items-center" aria-labelledby="book-rating">
+                            <span id="book-rating" class="sr-only">Book rating: @Model.Book.VolumeInfo.AverageRating.Value.ToString("0.0") out of 5 stars</span>
+                            <div class="flex items-center" aria-hidden="true">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= Math.Floor(Model.Book.VolumeInfo.AverageRating.Value))
+                                    {
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    }
+                                    else if (i <= Math.Ceiling(Model.Book.VolumeInfo.AverageRating.Value))
+                                    {
+                                        <i class="fas fa-star-half-alt text-yellow-400"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-yellow-400"></i>
+                                    }
+                                }
+                            </div>
+                            <span class="ml-2 text-primary-200">
+                                @Model.Book.VolumeInfo.AverageRating.Value.ToString("0.0")
+                                @if (Model.Book.VolumeInfo.RatingsCount.HasValue)
+                                {
+                                    <span>(@Model.Book.VolumeInfo.RatingsCount ratings)</span>
+                                }
+                            </span>
+                        </div>
+                    }
+                    
+                    @if (Model.Book.VolumeInfo.PageCount.HasValue)
+                    {
+                        <div class="text-primary-200">
+                            <i class="fas fa-book mr-2"></i>
+                            @Model.Book.VolumeInfo.PageCount pages
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.Book.VolumeInfo.PublishedDate))
+                    {
+                        <div class="text-primary-200">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Published: @Model.Book.VolumeInfo.PublishedDate?.Substring(0, Math.Min(4, Model.Book.VolumeInfo.PublishedDate.Length))
+                        </div>
+                    }
+                </div>
+                  <!-- Action Buttons -->
+                <div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-2">
+                    @if (isAuthenticated)
+                    {
+                        @if (!string.IsNullOrEmpty(Model.Book.VolumeInfo.PreviewLink))
+                        {
+                            <a href="@Model.Book.VolumeInfo.PreviewLink" target="_blank" 
+                               class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                <i class="fas fa-book-reader mr-2"></i> Preview Book
+                            </a>
+                        }
+                        
+                        <!-- Save Book Button -->
+                        @if (isBookSaved)
+                        {
+                            <!-- Already Saved - Show status with animation -->
+                            <div class="group relative">
+                                <div class="flex items-center justify-center px-6 py-3 border border-green-300 text-base font-medium rounded-md shadow-sm text-green-700 bg-green-50">
+                                    <i class="fas fa-check mr-2"></i> Saved to Library
+                                </div>
+                                <!-- Tooltip -->
+                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 w-max invisible group-hover:visible 
+                                     bg-gray-900 text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    Saved on @savedBookInfo.SavedDate.ToString("MMM dd, yyyy")
+                                    <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                            <a href="@Url.Action("Index", "UserLibrary")" 
+                               class="flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                <i class="fas fa-book-open mr-2"></i> View in My Library
+                            </a>
+                        }
+                        else
+                        {
+                            <!-- Save Book Form -->
+                            <form asp-controller="Home" asp-action="SaveBook" method="post" class="inline-block">
+                                <input type="hidden" name="bookId" value="@Model.Book.Id" />
+                                <input type="hidden" name="title" value="@Model.Book.VolumeInfo.Title" />
+                                <input type="hidden" name="authors" value="@(Model.Book.VolumeInfo.Authors != null ? string.Join(", ", Model.Book.VolumeInfo.Authors) : "")" />
+                                <input type="hidden" name="description" value="@Model.Book.VolumeInfo.Description" />
+                                <input type="hidden" name="thumbnailUrl" value="@Model.Book.VolumeInfo.ImageLinks?.Thumbnail" />
+                                <input type="hidden" name="source" value="GoogleBooks" />
+                                <input type="hidden" name="previewLink" value="@Model.Book.VolumeInfo.PreviewLink" />
+                                <!-- Enhanced metadata -->
+                                <input type="hidden" name="publisher" value="@Model.Book.VolumeInfo.Publisher" />
+                                <input type="hidden" name="pageCount" value="@Model.Book.VolumeInfo.PageCount" />
+                                <input type="hidden" name="publishedYear" value="@(Model.Book.VolumeInfo.PublishedDate?.Length >= 4 ? Model.Book.VolumeInfo.PublishedDate.Substring(0, 4) : "")" />
+                                <input type="hidden" name="isbn" value="@(Model.Book.VolumeInfo.IndustryIdentifiers?.FirstOrDefault(i => i.Type == "ISBN_13" || i.Type == "ISBN_10")?.Identifier)" />
+                                <input type="hidden" name="categories" value="@(Model.Book.VolumeInfo.Categories != null ? string.Join(", ", Model.Book.VolumeInfo.Categories) : "")" />
+                                <input type="hidden" name="bookUrl" value="@Model.Book.VolumeInfo.InfoLink" />
+                                <input type="hidden" name="language" value="@Model.Book.VolumeInfo.Language" />
+                                <input type="hidden" name="averageRating" value="@Model.Book.VolumeInfo.AverageRating" />
+                                <input type="hidden" name="ratingsCount" value="@Model.Book.VolumeInfo.RatingsCount" />
+                                <button type="submit" class="flex items-center justify-center px-6 py-3 border border-primary-300 text-base font-medium rounded-md shadow-sm text-primary-700 bg-white hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <i class="fas fa-bookmark mr-2"></i> Save Book
+                                </button>
+                            </form>
+                        }
+                        
+                        <!-- Download Book Button (if available) -->
+                        @if (Model.Book.AccessInfo?.Epub?.IsAvailable == true || Model.Book.AccessInfo?.Pdf?.IsAvailable == true)
+                        {
+                            @if (isBookDownloaded)
+                            {
+                                <!-- Already Downloaded - Show status with animation -->
+                                <div class="group relative">
+                                    <div class="flex items-center justify-center px-6 py-3 border border-blue-300 text-base font-medium rounded-md shadow-sm text-blue-700 bg-blue-50">
+                                        <i class="fas fa-check-circle mr-2"></i> Downloaded
+                                    </div>
+                                    <!-- Tooltip -->
+                                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 w-max invisible group-hover:visible 
+                                           bg-gray-900 text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        Downloaded @downloadedBookInfo.Format on @downloadedBookInfo.DownloadDate.ToString("MMM dd, yyyy")
+                                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("Index", "UserLibrary")" 
+                                   class="flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <i class="fas fa-folder-open mr-2"></i> View in Downloads
+                                </a>
+                            }
+                            else
+                            {
+                                <!-- Download Options -->
+                                <div class="relative inline-block" id="download-dropdown-container">
+                                    <button type="button" onclick="toggleDropdown()" class="flex items-center justify-center px-6 py-3 border border-primary-300 text-base font-medium rounded-md shadow-sm text-primary-700 bg-white hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        <i class="fas fa-download mr-2"></i> Download
+                                        <i class="fas fa-chevron-down ml-2"></i>
+                                    </button>
+                                    <div id="format-dropdown" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                            @if (Model.Book.AccessInfo?.Epub?.IsAvailable == true)
+                                            {
+                                                <form asp-controller="Home" asp-action="DownloadBook" method="post">
+                                                    <input type="hidden" name="bookId" value="@Model.Book.Id" />
+                                                    <input type="hidden" name="title" value="@Model.Book.VolumeInfo.Title" />
+                                                    <input type="hidden" name="authors" value="@(Model.Book.VolumeInfo.Authors != null ? string.Join(", ", Model.Book.VolumeInfo.Authors) : "")" />
+                                                    <input type="hidden" name="coverImageUrl" value="@Model.Book.VolumeInfo.ImageLinks?.Thumbnail" />
+                                                    <input type="hidden" name="format" value="EPUB" />
+                                                    <input type="hidden" name="sourceType" value="GoogleBooks" />
+                                                    <input type="hidden" name="bookUrl" value="@Model.Book.VolumeInfo.InfoLink" />
+                                                    <input type="hidden" name="returnUrl" value="@Url.Action("BookDetail", new { id = Model.Book.Id, viewMode = Model.ViewMode, searchQuery = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage })" />
+                                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                        <i class="fas fa-tablet-alt mr-2"></i> EPUB Format
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (Model.Book.AccessInfo?.Pdf?.IsAvailable == true)
+                                            {
+                                                <form asp-controller="Home" asp-action="DownloadBook" method="post">
+                                                    <input type="hidden" name="bookId" value="@Model.Book.Id" />
+                                                    <input type="hidden" name="title" value="@Model.Book.VolumeInfo.Title" />
+                                                    <input type="hidden" name="authors" value="@(Model.Book.VolumeInfo.Authors != null ? string.Join(", ", Model.Book.VolumeInfo.Authors) : "")" />
+                                                    <input type="hidden" name="coverImageUrl" value="@Model.Book.VolumeInfo.ImageLinks?.Thumbnail" />
+                                                    <input type="hidden" name="format" value="PDF" />
+                                                    <input type="hidden" name="sourceType" value="GoogleBooks" />
+                                                    <input type="hidden" name="bookUrl" value="@Model.Book.VolumeInfo.InfoLink" />
+                                                    <input type="hidden" name="returnUrl" value="@Url.Action("BookDetail", new { id = Model.Book.Id, viewMode = Model.ViewMode, searchQuery = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage })" />
+                                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                        <i class="fas fa-file-pdf mr-2"></i> PDF Format
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <a asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@Url.Action("BookDetail", new { id = Model.Book.Id, viewMode = Model.ViewMode })"
+                           class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Sign In to Access
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>    </div>
+</div>
+
+<!-- Status Indicator Section -->
+@if (isAuthenticated && (isBookSaved || isBookDownloaded))
+{
+    <div class="bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
+        <div class="max-w-7xl mx-auto py-3 px-2 sm:px-4 lg:px-8">
+            <div class="flex items-center justify-center space-x-6">
+                @if (isBookSaved && savedBookInfo != null)
+                {
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-bookmark text-green-600"></i>
+                        </div>
+                        <div class="ml-2">
+                            <p class="text-sm font-medium text-green-800">
+                                Saved to your library on @savedBookInfo.SavedDate.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+                        <div class="ml-4">
+                            <a href="@Url.Action("Index", "UserLibrary")" 
+                               class="text-sm font-medium text-green-700 hover:text-green-900 underline">
+                                View in MyLibrary
+                            </a>
+                        </div>
+                    </div>
+                }
+                
+                @if (isBookDownloaded && downloadedBookInfo != null)
+                {
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-download text-blue-600"></i>
+                        </div>
+                        <div class="ml-2">
+                            <p class="text-sm font-medium text-blue-800">
+                                Downloaded in @downloadedBookInfo.Format format on @downloadedBookInfo.DownloadDate.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Book Details Content -->
+<div class="bg-white py-6 sm:py-12">
+    <div class="max-w-9xl mx-auto px-2 sm:px-4 lg:px-8">
+        @if (!isAuthenticated)
+        {
+            <!-- Premium Authentication Required Modal -->
+            <div class="mb-10 p-8 rounded-2xl bg-gradient-to-br from-primary-50 to-white relative border border-primary-100 shadow-lg overflow-hidden">
+                <!-- Visual elements -->
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary-100 rounded-full opacity-50 blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 -mb-4 -ml-10 w-40 h-40 bg-primary-200 rounded-full opacity-30 blur-3xl"></div>
+                
+                <div class="relative flex flex-col md:flex-row items-center gap-8">
+                    <!-- Animated lock icon -->
+                    <div class="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-primary-100 to-primary-50 rounded-full flex items-center justify-center shadow-inner group">
+                        <div class="relative w-16 h-16 md:w-20 md:h-20">
+                            <!-- Lock body -->
+                            <div class="absolute inset-0 flex justify-center items-end">
+                                <div class="w-12 md:w-14 h-10 md:h-12 bg-primary-600 rounded-lg animate-pulse"></div>
+                            </div>
+                            <!-- Lock shackle -->
+                            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 md:w-10 h-8 md:h-10 border-4 border-primary-600 rounded-t-full"></div>
+                            <!-- Keyhole -->
+                            <div class="absolute bottom-4 md:bottom-5 left-1/2 transform -translate-x-1/2 w-2 h-3 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">Preview Access Requires Sign In</span>
+                        </h3>
+                        <p class="text-gray-700 mb-6 max-w-2xl">Our exclusive book preview feature is available only to signed-in members. Create a free account to gain immediate access to previews of all books in our extensive library collection.</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            <a asp-area="Identity" asp-page="/Account/Login" 
+                               class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                            </a>
+                            
+                            <a asp-area="Identity" asp-page="/Account/Register" 
+                               class="inline-flex items-center justify-center px-6 py-3 border border-primary-300 text-base font-medium rounded-md shadow-sm text-primary-700 bg-white hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                                <i class="fas fa-user-plus mr-2"></i> Create Free Account
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member benefits showcase -->
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-book-reader"></i>
+                            </div>
+                            <h4 class="font-medium">Full Preview Access</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Read sample chapters before borrowing or purchasing any book in our collection.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h4 class="font-medium">Advanced Search</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Access advanced search features to find exactly the books you need.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <h4 class="font-medium">New Release Alerts</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Get notifications when new books in your favorite genres become available.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h4 class="font-medium">Reading History</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Track your reading history and get personalized recommendations.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Blurred/Protected Content -->
+            <div class="relative mb-12">
+                <!-- Content protection overlay with glassy effect -->
+                <div class="absolute inset-0 bg-white/80 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-xl overflow-hidden">
+                    <!-- Stylized lock icon with animation -->
+                    <div class="relative h-24 w-24 mb-6">
+                        <div class="absolute inset-0 bg-primary-600 rounded-full opacity-10 animate-ping"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-lock text-primary-600 text-4xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Message -->
+                    <div class="text-center max-w-md px-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Content Preview Protected</h3>
+                        <p class="text-gray-600 mb-6">Create a free account or sign in to preview book details, descriptions, and sample content.</p>
+                        
+                        <div class="inline-flex rounded-md shadow">
+                            <a asp-area="Identity" asp-page="/Account/Login" 
+                               class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                                Sign in to preview
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Blurred content -->
+                <div class="filter blur-sm opacity-30">
+                    <div class="h-96 lg:h-[32rem] bg-gray-100 rounded-xl flex items-center justify-center">
+                        <div class="w-full p-6 lg:p-12 max-w-3xl mx-auto">
+                            <!-- Book preview placeholder -->
+                            <div class="space-y-4">
+                                <div class="h-6 bg-gray-300 rounded w-3/4"></div>
+                                <div class="h-6 bg-gray-300 rounded"></div>
+                                <div class="h-6 bg-gray-300 rounded"></div>
+                                <div class="h-6 bg-gray-300 rounded w-5/6"></div>
+                                <div class="h-6 bg-gray-300 rounded"></div>
+                                <div class="h-6 bg-gray-300 rounded w-4/5"></div>
+                                <div class="h-6 bg-gray-300 rounded"></div>
+                                <div class="h-6 bg-gray-300 rounded w-2/3"></div>
+                            </div>
+                            
+                            <!-- Book details placeholder -->
+                            <div class="mt-12 grid grid-cols-2 gap-6">
+                                <div class="h-32 bg-gray-300 rounded"></div>
+                                <div class="h-32 bg-gray-300 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Full Book Content for Authenticated Users -->
+            <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+                <!-- Main Content -->
+                <div class="lg:col-span-8">
+                    <!-- Description -->
+                    <section>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Description</h2>
+                        <div class="prose prose-primary max-w-none">
+                            @if (!string.IsNullOrEmpty(Model.Book.VolumeInfo.Description))
+                            {
+                                <div class="text-gray-700">@Html.Raw(Model.Book.VolumeInfo.Description)</div>
+                            }
+                            else
+                            {
+                                <p class="text-gray-500">No description available for this book.</p>
+                            }
+                        </div>
+                    </section>
+                    
+                    <!-- Book Details -->
+                    <section class="mt-12">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Book Details</h2>
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Publisher</dt>
+                                    <dd class="mt-1 text-gray-900">@(Model.Book.VolumeInfo.Publisher ?? "Not specified")</dd>
+                                </div>
+                                
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Publication Date</dt>
+                                    <dd class="mt-1 text-gray-900">@(Model.Book.VolumeInfo.PublishedDate ?? "Not specified")</dd>
+                                </div>
+                                
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Language</dt>
+                                    <dd class="mt-1 text-gray-900">@(Model.Book.VolumeInfo.Language ?? "Not specified")</dd>
+                                </div>
+                                
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Pages</dt>
+                                    <dd class="mt-1 text-gray-900">@(Model.Book.VolumeInfo.PageCount?.ToString() ?? "Not specified")</dd>
+                                </div>
+                                
+                                @if (Model.Book.VolumeInfo.IndustryIdentifiers?.Any() == true)
+                                {
+                                    foreach (var identifier in Model.Book.VolumeInfo.IndustryIdentifiers)
+                                    {
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">@identifier.Type</dt>
+                                            <dd class="mt-1 text-gray-900">@identifier.Identifier</dd>
+                                        </div>
+                                    }
+                                }
+                            </dl>
+                        </div>
+                    </section>
+                    
+                    <!-- Access Options -->
+                    <section class="mt-12">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Preview Options</h2>
+                        <div class="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-6">
+                            <ul class="space-y-4">
+                                @if (!string.IsNullOrEmpty(Model.Book.AccessInfo?.WebReaderLink))
+                                {
+                                    <li class="flex items-start">
+                                        <div class="flex-shrink-0 h-6 w-6 text-primary-600">
+                                            <i class="fas fa-globe"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">Web Reader</p>
+                                            <p class="mt-1 text-sm text-gray-600">Read this book online in your browser</p>
+                                            <a href="@Model.Book.AccessInfo.WebReaderLink" target="_blank" class="mt-2 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-800">
+                                                Open Web Reader <i class="fas fa-external-link-alt ml-1"></i>
+                                            </a>
+                                        </div>
+                                    </li>
+                                }
+                                
+                                @if (Model.Book.AccessInfo?.Epub?.IsAvailable == true)
+                                {
+                                    <li class="flex items-start">
+                                        <div class="flex-shrink-0 h-6 w-6 text-primary-600">
+                                            <i class="fas fa-tablet-alt"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">EPUB Format Preview</p>
+                                            <p class="mt-1 text-sm text-gray-600">Preview sample chapters on your e-reader or mobile device</p>
+                                            @if (!string.IsNullOrEmpty(Model.Book.AccessInfo.Epub.AcsTokenLink))
+                                            {
+                                                <a href="@Model.Book.AccessInfo.Epub.AcsTokenLink" class="mt-2 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-800">
+                                                    Preview EPUB <i class="fas fa-external-link-alt ml-1"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="mt-2 inline-flex items-center text-sm font-medium text-gray-500">
+                                                    Available through institutional access
+                                                </span>
+                                            }
+                                        </div>
+                                    </li>
+                                }
+                                
+                                @if (Model.Book.AccessInfo?.Pdf?.IsAvailable == true)
+                                {
+                                    <li class="flex items-start">
+                                        <div class="flex-shrink-0 h-6 w-6 text-primary-600">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">PDF Format Preview</p>
+                                            <p class="mt-1 text-sm text-gray-600">Preview sample chapters in PDF format</p>
+                                            @if (!string.IsNullOrEmpty(Model.Book.AccessInfo.Pdf.AcsTokenLink))
+                                            {
+                                                <a href="@Model.Book.AccessInfo.Pdf.AcsTokenLink" class="mt-2 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-800">
+                                                    Preview PDF <i class="fas fa-external-link-alt ml-1"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="mt-2 inline-flex items-center text-sm font-medium text-gray-500">
+                                                    Available through institutional access
+                                                </span>
+                                            }
+                                        </div>
+                                    </li>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(Model.Book.VolumeInfo.InfoLink))
+                                {
+                                    <li class="flex items-start">
+                                        <div class="flex-shrink-0 h-6 w-6 text-primary-600">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">More Information</p>
+                                            <p class="mt-1 text-sm text-gray-600">View additional information about this book</p>
+                                            <a href="@Model.Book.VolumeInfo.InfoLink" target="_blank" class="mt-2 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-800">
+                                                View on Google Books <i class="fas fa-external-link-alt ml-1"></i>
+                                            </a>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="lg:col-span-4 mt-12 lg:mt-0">
+                    <!-- Preview Button Section -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Preview This Book</h3>
+                        </div>
+                        <div class="p-5 flex flex-col items-center">
+                            @if (!string.IsNullOrEmpty(Model.Book.VolumeInfo.PreviewLink))
+                            {
+                                <img src="/images/preview-available.svg" alt="Preview Available" class="h-24 w-auto mb-4">
+                                <p class="text-sm text-gray-600 text-center mb-4">Preview sample chapters and content from this book directly in your browser.</p>
+                                <a href="@Model.Book.VolumeInfo.PreviewLink" target="_blank" 
+                                   class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <i class="fas fa-book-reader mr-2"></i> Open Preview
+                                </a>
+                            }
+                            else
+                            {
+                                <img src="/images/preview-unavailable.svg" alt="Preview Unavailable" class="h-24 w-auto mb-4">
+                                <p class="text-sm text-gray-600 text-center">No preview is currently available for this book.</p>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Related Books -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Related Books</h3>
+                        </div>
+                        <div class="p-5">
+                            @if (Model.RelatedBooks?.Any(b => b.Id != Model.Book.Id) == true)
+                            {
+                                <ul class="space-y-4">
+                                    @foreach (var book in Model.RelatedBooks.Where(b => b.Id != Model.Book.Id).Take(3))
+                                    {
+                                        <li class="flex items-start">
+                                            <div class="flex-shrink-0 h-12 w-9 bg-gray-200 rounded overflow-hidden">
+                                                <img src="@(book.VolumeInfo.ImageLinks?.SmallThumbnail ?? "https://via.placeholder.com/36x54?text=No+Cover")" 
+                                                     alt="@book.VolumeInfo.Title" class="h-full w-full object-cover">
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900 line-clamp-1">@book.VolumeInfo.Title</p>
+                                                <p class="text-xs text-gray-500 line-clamp-1">
+                                                    @(book.VolumeInfo.Authors != null ? string.Join(", ", book.VolumeInfo.Authors) : "Unknown")
+                                                </p>
+                                                <a href="@Url.Action("BookDetail", new { id = book.Id, viewMode = Model.ViewMode })" 
+                                                   class="mt-1 text-xs font-medium text-primary-600 hover:text-primary-800">
+                                                    View details
+                                                </a>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <p class="text-gray-500">No related books found.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Help Box -->
+                    <div class="mt-8 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-primary-100 rounded-full p-2">
+                                <i class="fas fa-question-circle text-primary-600 text-xl"></i>
+                            </div>
+                            <h3 class="ml-3 text-lg font-medium text-gray-900">Need Help?</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">
+                            Having trouble with the preview? Our librarians can help you access this content or find alternative formats.
+                        </p>
+                        <a href="#" class="text-primary-600 hover:text-primary-800 font-medium flex items-center">
+                            Contact Librarian <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Similar Books (Visible to all users) -->
+        <div class="mt-20">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">More Books You Might Like</h2>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                @if (Model.RelatedBooks?.Any(b => b.Id != Model.Book.Id) == true)
+                {
+                    @foreach (var book in Model.RelatedBooks.Where(b => b.Id != Model.Book.Id).Take(4))
+                    {
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                            <a href="@Url.Action("BookDetail", new { id = book.Id, viewMode = Model.ViewMode })" class="block">
+                                <div class="relative aspect-w-2 aspect-h-3">
+                                    <img src="@(book.VolumeInfo.ImageLinks?.Thumbnail ?? "https://via.placeholder.com/128x192?text=No+Cover")" 
+                                         alt="@book.VolumeInfo.Title" 
+                                         class="w-full h-full object-cover" />
+                                    
+                                    @if (!isAuthenticated)
+                                    {
+                                        <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center transition-opacity opacity-0 hover:opacity-100">
+                                            <div class="text-white font-medium text-center px-2">
+                                                <i class="fas fa-lock mb-1"></i>
+                                                <p class="text-xs">Sign in to preview</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="p-4">
+                                    <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">@book.VolumeInfo.Title</h3>
+                                    <p class="text-xs text-gray-500 line-clamp-1 mb-2">
+                                        @(book.VolumeInfo.Authors != null ? string.Join(", ", book.VolumeInfo.Authors) : "Unknown Author")
+                                    </p>
+                                    @if (book.VolumeInfo.AverageRating.HasValue)
+                                    {
+                                        <div class="flex items-center">
+                                            <div class="flex text-yellow-400 text-xs">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Math.Floor(book.VolumeInfo.AverageRating.Value))
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    else if (i <= Math.Ceiling(book.VolumeInfo.AverageRating.Value))
+                                                    {
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            <span class="ml-1 text-xs text-gray-500">
+                                                @book.VolumeInfo.AverageRating.Value.ToString("0.0")
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-span-full text-center py-10">
+                        <p class="text-gray-500">No related books available at this time.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('format-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('download-dropdown-container');
+            const dropdown = document.getElementById('format-dropdown');
+            
+            if (container && dropdown && !container.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
+}

@@ -1,0 +1,1 @@
+"Get-ChildItem -Path 'LibraryX\Areas\Identity' -Filter '*.cs' -Recurse | ForEach-Object { $content = Get-Content $_.FullName; $namespace = 'using LibraryX.Models;'; if ($content -notmatch 'using LibraryX.Models;') { $content = $content[0..10] + $namespace + $content[11..($content.Length)]; $content | Set-Content $_.FullName } }" 

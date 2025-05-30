@@ -1,0 +1,121 @@
+@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = "Registration Confirmed";
+}
+
+<div class="relative bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden opacity-20">
+        <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4"></div>
+        <div class="absolute bottom-0 left-0 w-3/4 h-3/4 bg-gradient-to-tr from-primary-600 to-primary-400 rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4"></div>
+    </div>
+    
+    <!-- Confirmation Container -->
+    <div class="relative w-full max-w-2xl">
+        <div class="sm:mx-auto sm:w-full sm:max-w-md mb-8">
+            <div class="flex justify-center">
+                <a href="/" class="group flex items-center space-x-3">
+                    <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-3 rounded-xl shadow-md transition-transform duration-300 group-hover:scale-105">
+                        <i class="fas fa-book-reader text-2xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-white transition-colors duration-300 group-hover:text-primary-300">
+                        Library<span class="text-primary-300">X</span>
+                    </span>
+                </a>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-white tracking-tight">
+                @ViewData["Title"]
+            </h2>
+            <div class="mt-2 text-center text-sm text-primary-200">
+                <div class="inline-flex items-center">
+                    <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                    <span>Your account has been created successfully</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Card -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden transform transition-all hover:shadow-2xl">
+            <div class="px-6 py-8 sm:px-10">
+                <!-- Success Icon -->
+                <div class="flex justify-center mb-6">
+                    <div class="rounded-full bg-green-100/20 p-4">
+                        <div class="rounded-full bg-green-500/30 p-3">
+                            <i class="fas fa-envelope-open-text text-3xl text-green-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                @{
+                    if (@Model.DisplayConfirmAccountLink)
+                    {
+                        <div class="text-center space-y-6">
+                            <p class="text-primary-200 text-sm leading-relaxed backdrop-blur-sm bg-primary-800/20 p-4 rounded-lg">
+                                <i class="fas fa-info-circle text-primary-300 mr-2"></i>
+                                This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf" class="text-primary-300 hover:text-primary-200 underline">these docs</a> for how to configure a real email sender.
+                            </p>
+                            
+                            <div>
+                                <p class="text-white font-medium mb-3">Confirm your account by clicking the link below:</p>
+                                <a id="confirm-link" href="@Model.EmailConfirmationUrl" 
+                                   class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500 transition-all shadow-md hover:shadow-lg">
+                                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                        <i class="fas fa-check-circle text-primary-300 group-hover:text-primary-200"></i>
+                                    </span>
+                                    Confirm My Account
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center space-y-6">
+                            <div class="rounded-lg bg-primary-800/50 p-6">
+                                <div class="flex flex-col items-center">
+                                    <div class="animate-bounce bg-white/10 p-2 w-10 h-10 ring-1 ring-primary-300/50 shadow-lg rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-envelope text-primary-300"></i>
+                                    </div>
+                                    <h3 class="text-white text-lg font-medium mb-2">Check Your Inbox</h3>
+                                    <p class="text-primary-200 text-sm">
+                                        We've sent a confirmation link to your email address.
+                                        <br>Please check your inbox and confirm your account.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-primary-200 text-sm">
+                                <p>Didn't receive an email? Check your spam folder or</p>
+                                <a href="#" class="text-primary-300 hover:text-primary-200 font-medium inline-flex items-center mt-2">
+                                    <i class="fas fa-paper-plane mr-2"></i> Resend confirmation email
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                
+                
+                <!-- Return to Home -->
+                <div class="mt-6 text-center">
+                    <a href="/" class="text-sm text-primary-300 hover:text-primary-200 flex justify-center items-center transition-colors">
+                        <i class="fas fa-home mr-2"></i> Return to homepage
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trust Badges -->
+        <div class="mt-10 flex flex-wrap justify-center gap-6 items-center">
+            <div class="text-primary-200 text-sm font-medium backdrop-blur-sm bg-primary-800/20 px-4 py-2 rounded-full">
+                <i class="fas fa-shield-alt mr-2"></i> Secure & Private
+            </div>
+            <div class="flex space-x-4">
+                <div class="h-8 w-auto opacity-80">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-auto" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

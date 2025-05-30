@@ -1,0 +1,164 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+}
+
+<div class="relative">
+    
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between relative z-10">
+        <div class="animate-fade-in">
+            <h2 class="text-3xl font-bold text-white tracking-tight">Your Profile</h2>
+            <p class="text-primary-200 text-lg mt-2 tracking-wide">Manage your personal information and preferences</p>
+        </div>
+        
+        <div class="mt-6 sm:mt-0">
+            <div class="flex items-center bg-white/10 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/5 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div class="relative">
+                    <div class="h-12 w-12 bg-gradient-to-br from-green-500/20 to-green-400/20 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 h-5 w-5 bg-green-500 rounded-full border-2 border-primary-900"></div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-primary-200 font-medium">Profile Status</p>
+                    <p class="text-white text-base font-bold">Verified</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Message with animation -->
+    <div class="my-8 animate-fade-in">
+        <partial name="_StatusMessage" for="StatusMessage" />
+    </div>
+
+    <!-- Profile Form Card with Glass Morphism -->
+    <div class="bg-white/5 backdrop-blur-xl rounded-2xl p-2 sm:p-4 shadow-xl border border-white/10 animate-slide-up">
+        <div class="space-y-8">
+            <!-- Section Header with Modern Design -->
+            <div>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500/30 to-primary-400/20 flex items-center justify-center mr-4 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-100" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-white tracking-tight">Account Information</h3>
+                        <p class="mt-1 text-base text-primary-300">Update your personal details and contact information</p>
+                    </div>
+                </div>
+                <div class="mt-4 h-1 w-full bg-gradient-to-r from-primary-500/50 to-transparent rounded-full"></div>
+            </div>
+
+            <!-- Enhanced Form -->
+            <form id="profile-form" method="post" class="space-y-8">
+                <div asp-validation-summary="ModelOnly" class="text-red-400 font-medium text-sm rounded-xl bg-red-900/20 p-4 border border-red-800/30" role="alert"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Form Fields with Modern Design -->
+                    <div class="space-y-6">
+                        <!-- Username Field -->
+                        <div class="group">
+                            <label asp-for="Username" class="block text-sm font-semibold text-white mb-2 ml-1 group-hover:text-primary-300 transition-colors duration-300">Username</label>
+                            <div class="relative rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-400 group-hover:text-primary-300 transition-colors duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <input asp-for="Username" class="block w-full pl-12 pr-4 py-4 text-primary-100 bg-primary-800/60 border-2 border-primary-700/80 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-600 focus:outline-none placeholder-primary-400 text-lg transition-all duration-300" placeholder="Username" disabled />
+                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="mt-2 text-xs text-primary-400 ml-1 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Username cannot be changed
+                            </p>
+                        </div>
+
+                        <!-- Phone Number Field -->
+                        <div class="group">
+                            <label asp-for="Input.PhoneNumber" class="block text-sm font-semibold text-white mb-2 ml-1 group-hover:text-primary-300 transition-colors duration-300">Phone Number</label>
+                            <div class="relative rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-400 group-hover:text-primary-300 transition-colors duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                    </svg>
+                                </div>
+                                <input asp-for="Input.PhoneNumber" class="block w-full pl-12 pr-4 py-4 text-white bg-primary-800/60 border-2 border-primary-700/80 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-600 focus:outline-none placeholder-primary-400 text-lg transition-all duration-300" placeholder="(555) 123-4567" />
+                            </div>
+                            <span asp-validation-for="Input.PhoneNumber" class="text-red-400 text-sm ml-1 mt-1 block"></span>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Information Cards -->
+                    <div class="space-y-6">
+                        <!-- Email Verified Status Card -->
+                        <div class="bg-gradient-to-br from-primary-800/40 to-primary-700/20 rounded-xl p-5 border border-white/5 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-14 w-14 flex items-center justify-center bg-gradient-to-br from-green-500/30 to-green-600/20 rounded-xl shadow-inner border border-white/5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-base font-semibold text-white">Email Verification</h3>
+                                    <p class="text-sm text-primary-300">Your email has been successfully verified</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Account Security Card -->
+                        <div class="bg-gradient-to-br from-primary-800/40 to-primary-700/20 rounded-xl p-5 border border-white/5 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <h4 class="font-medium text-white mb-3 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                </svg>
+                                Account Security
+                            </h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-primary-300">Two-factor authentication</span>
+                                    <a href="./TwoFactorAuthentication" class="text-xs text-primary-500 hover:text-primary-400 font-medium">Manage</a>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-primary-300">Password</span>
+                                    <a href="./ChangePassword" class="text-xs text-primary-500 hover:text-primary-400 font-medium">Update</a>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-primary-300">Personal data</span>
+                                    <a href="./PersonalData" class="text-xs text-primary-500 hover:text-primary-400 font-medium">Manage</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Improved Submit Button -->
+                <div class="pt-6 border-t border-white/10">
+                    <button id="update-profile-button" type="submit" class="w-full sm:w-auto flex items-center justify-center px-8 py-4 border-2 border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
+                        </svg>
+                        Save Profile Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

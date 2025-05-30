@@ -1,0 +1,168 @@
+@page
+@model LogoutModel
+@{
+    ViewData["Title"] = "Log out";
+}
+
+<div class="relative bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden opacity-20">
+        <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full blur-3xl transform translate-x-1/4 -translate-y-1/4"></div>
+        <div class="absolute bottom-0 left-0 w-3/4 h-3/4 bg-gradient-to-tr from-primary-600 to-primary-400 rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4"></div>
+    </div>
+    
+    <!-- Logout Container -->
+    <div class="relative w-full max-w-xl">
+        <div class="sm:mx-auto sm:w-full sm:max-w-md mb-8">
+            <div class="flex justify-center">
+                <a href="/" class="group flex items-center space-x-3">
+                    <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-3 rounded-xl shadow-md transition-transform duration-300 group-hover:scale-105">
+                        <i class="fas fa-book-reader text-2xl"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-white transition-colors duration-300 group-hover:text-primary-300">
+                        Library<span class="text-primary-300">X</span>
+                    </span>
+                </a>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-white tracking-tight">
+                @ViewData["Title"]
+            </h2>
+        </div>
+
+        <!-- Logout Card -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden transform transition-all hover:shadow-2xl">
+            <div class="px-6 py-8 sm:px-10">
+                @{
+                    if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <!-- Logout Prompt -->
+                        <div class="flex flex-col items-center justify-center space-y-6">
+                            <div class="relative">
+                                <div class="rounded-full bg-primary-500/30 p-5">
+                                    <div class="rounded-full bg-primary-500/50 p-4">
+                                        <i class="fas fa-sign-out-alt text-3xl text-primary-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold text-white text-center">Ready to leave?</h3>
+                            
+                            <p class="text-primary-200 text-center">
+                                You're about to sign out of your LibraryX account.
+                                Your session data will be cleared for security.
+                            </p>
+                            
+                            <!-- Account Status -->
+                            <div class="w-full backdrop-blur-sm bg-primary-800/20 rounded-lg p-4 mt-2">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-primary-500/20 p-2 rounded-full">
+                                            <i class="fas fa-user text-primary-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-white">Currently signed in as</h3>
+                                        <p class="text-xs text-primary-300">
+                                            <span class="inline-flex items-center bg-primary-800/30 text-primary-300 px-2 py-0.5 rounded text-xs font-medium mr-2">
+                                                <span class="w-1.5 h-1.5 bg-primary-400 rounded-full mr-1.5"></span>
+                                                Active
+                                            </span>
+                                            @User.Identity?.Name
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Logout Button -->
+                            <div class="w-full space-y-3 mt-2">
+                                <form class="w-full" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500 transition-all shadow-md hover:shadow-lg">
+                                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                            <i class="fas fa-sign-out-alt text-primary-300 group-hover:text-primary-200"></i>
+                                        </span>
+                                        Sign out now
+                                    </button>
+                                </form>
+                                <a href="/" class="group relative w-full flex justify-center py-3 px-4 border border-primary-700 text-sm font-medium rounded-lg text-primary-300 hover:text-white bg-transparent hover:bg-primary-800/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500 transition-all">
+                                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                        <i class="fas fa-arrow-left text-primary-400 group-hover:text-primary-300"></i>
+                                    </span>
+                                    Return without signing out
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Logout Success -->
+                        <div class="flex flex-col items-center justify-center space-y-6">
+                            <div class="relative">
+                                <div class="absolute inset-0 rounded-full animate-ping bg-green-500/40"></div>
+                                <div class="relative rounded-full bg-green-500/30 p-5">
+                                    <div class="rounded-full bg-green-500/50 p-4">
+                                        <i class="fas fa-check text-3xl text-green-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold text-white text-center">Successfully Signed Out</h3>
+                            
+                            <p class="text-primary-200 text-center">
+                                You have been securely signed out of your LibraryX account.
+                                Your session has been terminated.
+                            </p>
+                            
+                            <!-- Security Notice -->
+                            <div class="w-full backdrop-blur-sm bg-primary-800/20 rounded-lg p-4 mt-2">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-green-500/20 p-2 rounded-full">
+                                            <i class="fas fa-shield-alt text-green-400"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-white">Security Notice</h3>
+                                        <p class="text-xs text-primary-300">
+                                            For complete security, we recommend closing your browser.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Next Steps -->
+                            <div class="w-full space-y-3 mt-2">
+                                <h4 class="text-white font-medium text-center">What's Next?</h4>
+                                <a href="/Identity/Account/Login" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500 transition-all shadow-md hover:shadow-lg">
+                                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                        <i class="fas fa-sign-in-alt text-primary-300 group-hover:text-primary-200"></i>
+                                    </span>
+                                    Sign back in
+                                </a>
+                                <a href="/" class="group relative w-full flex justify-center py-3 px-4 border border-primary-700 text-sm font-medium rounded-lg text-primary-300 hover:text-white bg-transparent hover:bg-primary-800/50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500 transition-all">
+                                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                        <i class="fas fa-home text-primary-400 group-hover:text-primary-300"></i>
+                                    </span>
+                                    Return to homepage
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        
+        <!-- Trust Badges -->
+        <div class="mt-10 flex flex-wrap justify-center gap-6 items-center">
+            <div class="text-primary-200 text-sm font-medium backdrop-blur-sm bg-primary-800/20 px-4 py-2 rounded-full">
+                <i class="fas fa-shield-alt mr-2"></i> Secure Session Management
+            </div>
+            <div class="flex space-x-4">
+                <div class="h-8 w-auto opacity-80">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-auto" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

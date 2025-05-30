@@ -1,0 +1,181 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using LibraryX.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="flex items-center md:space-x-4">
+        <!-- User profile dropdown -->
+        <div class="relative" id="dropdown-container">
+            <div>
+                <button type="button" id="user-menu-button" class="flex items-center space-x-2 text-white hover:text-primary-300 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 focus:ring-offset-primary-900 rounded-lg py-1 px-2">
+                    <div class="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white border border-primary-500">
+                        <i class="fas fa-user text-sm"></i>
+                    </div>                    <div class="hidden md:flex md:flex-col md:items-start">
+                        <span class="text-xs text-primary-300">Welcome</span>
+                        @{
+                            string displayName = User.Identity?.Name?.Split('@')?[0] ?? "User";
+                            ApplicationUser user = null;
+                            try
+                            {
+                                user = await UserManager.GetUserAsync(User);
+                                if (user != null && !string.IsNullOrEmpty(user.FullName))
+                                {
+                                    displayName = user.FullName;
+                                }
+                            }
+                            catch
+                            {
+                                // Fallback to using claims if there's an issue getting user from the database
+                                // displayName is already set above
+                            }
+                        }
+                        <span class="text-sm font-medium text-white">@displayName</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-xs hidden md:inline-block transition-transform duration-200" id="dropdown-arrow"></i>
+                </button>
+            </div>
+            
+            <!-- Fixed dropdown menu with proper z-index and animation -->
+            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden transform origin-top-right transition-all duration-200 ease-out opacity-0 scale-95">
+                <!-- User info section -->                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <p class="text-sm text-gray-700 font-medium truncate">
+                        @(displayName ?? "User")
+                    </p>
+                    <p class="text-xs text-gray-500">Member since @(user?.CreatedDate ?? "Registration")</p>
+                </div>
+                
+                <!-- Menu items -->
+                <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">                    <a asp-controller="Profile" asp-action="Index" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors duration-200" role="menuitem">
+                        <i class="fas fa-user-circle mr-3 text-primary-600"></i> 
+                        <span>Your Profile</span>
+                    </a>
+                    
+                    <a href="#my-books" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors duration-200" role="menuitem">
+                        <i class="fas fa-book mr-3 text-primary-600"></i> 
+                        <span>My Books</span>
+                        <span class="ml-auto bg-primary-100 text-primary-600 text-xs px-2 py-0.5 rounded-full">3</span>
+                    </a>
+                      <a asp-controller="Profile" asp-action="Index" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors duration-200" role="menuitem">
+                        <i class="fas fa-cog mr-3 text-primary-600"></i> 
+                        <span>Settings</span>
+                    </a>
+                    
+                    <div class="border-t border-gray-100 my-1"></div>
+                    
+                    <!-- Fixed form submission for logout -->
+                    <form class="block" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                        <button type="submit" class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200" role="menuitem">
+                            <i class="fas fa-sign-out-alt mr-3"></i> 
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Ensure the script runs after the DOM is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDropdown);
+        } else {
+            initDropdown();
+        }
+        
+        function initDropdown() {
+            // Fixed selectors
+            const menuButton = document.getElementById('user-menu-button');
+            const dropdown = document.getElementById('user-dropdown');
+            const dropdownArrow = document.getElementById('dropdown-arrow');
+            const container = document.getElementById('dropdown-container');
+            
+            if (!menuButton || !dropdown) return;
+            
+            // Track dropdown state
+            let isDropdownOpen = false;
+            
+            // Toggle dropdown function for reuse
+            function toggleDropdown(show) {
+                if (show) {
+                    // Show dropdown
+                    dropdown.classList.remove('hidden');
+                    
+                    // Force browser reflow to ensure transition works
+                    dropdown.getBoundingClientRect();
+                    
+                    // Show with animation
+                    dropdown.classList.add('opacity-100', 'scale-100');
+                    dropdown.classList.remove('opacity-0', 'scale-95');
+                    
+                    // Rotate arrow
+                    if (dropdownArrow) dropdownArrow.classList.add('rotate-180');
+                    
+                    isDropdownOpen = true;
+                } else {
+                    // Hide with animation
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    
+                    // Reset arrow
+                    if (dropdownArrow) dropdownArrow.classList.remove('rotate-180');
+                    
+                    // Wait for animation to complete before hiding
+                    setTimeout(() => {
+                        dropdown.classList.add('hidden');
+                    }, 200);
+                    
+                    isDropdownOpen = false;
+                }
+            }
+            
+            // Toggle dropdown on button click with better event handling
+            menuButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDropdown(!isDropdownOpen);
+            });
+            
+            // More reliable way to close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (isDropdownOpen && container && !container.contains(e.target)) {
+                    toggleDropdown(false);
+                }
+            }, { passive: true });
+            
+            // Fix for mobile: handle touch events
+            document.addEventListener('touchstart', function(e) {
+                if (isDropdownOpen && container && !container.contains(e.target)) {
+                    toggleDropdown(false);
+                }
+            }, { passive: true });
+            
+            // Ensure dropdown closes when pressing escape key
+            document.addEventListener('keydown', function(e) {
+                if (isDropdownOpen && e.key === 'Escape') {
+                    toggleDropdown(false);
+                }
+            });
+            
+            // Prevent clicks within the dropdown from closing it
+            dropdown.addEventListener('click', function(e) {
+                // Don't stop propagation for actual links or form elements
+                if (!e.target.closest('a') && !e.target.closest('button') && !e.target.closest('input')) {
+                    e.stopPropagation();
+                }
+            });
+        }
+    </script>
+}
+else
+{
+    <div class="md:flex md:items-center md:space-x-4">
+        <a asp-area="Identity" asp-page="/Account/Login" class="flex items-center text-white hover:text-primary-300 transition duration-300 md:px-3 py-2 md:py-1 text-sm font-medium">
+            <i class="fas fa-sign-in-alt mr-1.5"></i> Login
+        </a>
+        <a asp-area="Identity" asp-page="/Account/Register" class="flex items-center bg-primary-600 hover:bg-primary-500 text-white transition duration-300 px-4 py-2 text-sm font-medium rounded-lg shadow-md hover:shadow-lg">
+            <i class="fas fa-user-plus mr-1.5"></i> Register
+        </a>
+    </div>
+}

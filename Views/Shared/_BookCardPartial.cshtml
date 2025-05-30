@@ -1,0 +1,65 @@
+@model Book
+@{
+    var bookTitle = Model.VolumeInfo?.Title ?? "Untitled Book";
+    var authors = string.Join(", ", Model.VolumeInfo?.Authors ?? new List<string>());
+    var bookUrl = Url.Action("BookDetail", "Home", new { id = Model.Id });
+}
+
+<div class="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2" tabindex="0">
+    <div class="aspect-h-4 aspect-w-3 bg-gray-200 sm:aspect-none sm:h-48">
+        <img src="@(Model.VolumeInfo?.ImageLinks?.BestAvailableImage ?? "/images/no-cover.png")" 
+             alt="@bookTitle by @authors" 
+             class="h-full w-full object-cover object-center sm:h-full sm:w-full"
+             loading="lazy">
+    </div>
+    <div class="flex flex-1 flex-col space-y-2 p-4">
+        <h3 class="text-sm font-medium text-gray-900 line-clamp-2" title="@bookTitle">
+            <a href="@bookUrl" class="focus:outline-none">
+                <span aria-hidden="true" class="absolute inset-0"></span>
+                @bookTitle
+            </a>
+        </h3>
+        <p class="text-xs text-gray-500 line-clamp-1" title="@authors">@(string.IsNullOrEmpty(authors) ? "Unknown author" : authors)</p>
+        
+        @if (Model.VolumeInfo?.AverageRating > 0)
+        {
+            <div class="flex items-center text-xs" aria-label="Rating: @Model.VolumeInfo?.AverageRating out of 5 stars">
+                <div class="flex text-yellow-400" aria-hidden="true">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Floor(Model.VolumeInfo.AverageRating.GetValueOrDefault()))
+                        {
+                            <i class="fas fa-star"></i>
+                        }
+                        else if (i <= Math.Ceiling(Model.VolumeInfo.AverageRating.GetValueOrDefault()))
+                        {
+                            <i class="fas fa-star-half-alt"></i>
+                        }
+                        else
+                        {
+                            <i class="far fa-star"></i>
+                        }
+                    }
+                </div>
+                <span class="ml-1 text-gray-500">@Model.VolumeInfo?.AverageRating?.ToString("0.0")</span>
+            </div>
+        }
+        
+        <div class="flex flex-1 flex-col justify-end">
+            <div class="mt-2 flex space-x-2 text-xs">
+                @if (Model.IsAvailable)
+                {
+                    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                        <i class="fas fa-check-circle mr-1" aria-hidden="true"></i> Available
+                    </span>
+                }
+                @if (Model.VolumeInfo?.Categories?.FirstOrDefault() != null)
+                {
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 truncate" title="@Model.VolumeInfo?.Categories?.FirstOrDefault()">
+                        @Model.VolumeInfo?.Categories?.FirstOrDefault()
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+</div>

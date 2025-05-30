@@ -1,0 +1,135 @@
+@page
+@model DeletePersonalDataModel
+@{
+    ViewData["Title"] = "Delete Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-white">Delete Personal Data</h2>
+        <p class="text-primary-200 text-sm mt-1">Permanently remove your account and all associated data</p>
+    </div>
+    
+    <div class="mt-4 sm:mt-0">
+        <div class="flex items-center bg-red-900/30 px-4 py-2 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+                <p class="text-xs text-primary-200">Action Type</p>
+                <p class="text-red-300 text-sm font-semibold">Irreversible</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Card -->
+<div class="mb-6 bg-red-900/20 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-800/30">
+    <div class="flex items-start">
+        <div class="flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <div class="ml-4">
+            <h3 class="text-lg font-medium text-red-300">Warning: Account Deletion</h3>
+            <div class="mt-2 text-sm text-red-200">
+                <p class="font-medium">
+                    Deleting this data will permanently remove your account, and this cannot be recovered.
+                </p>
+                <ul class="list-disc pl-5 space-y-1 mt-3">
+                    <li>All personal information will be permanently deleted</li>
+                    <li>Your borrowing history and saved preferences will be removed</li>
+                    <li>You'll lose access to any digital content associated with your account</li>
+                    <li>This action cannot be undone or reversed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deletion Form Card -->
+<div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/10">
+    <div class="space-y-8">
+        <div>
+            <h3 class="text-lg font-medium text-primary-100 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                Confirm Account Deletion
+            </h3>
+            <p class="mt-1 text-sm text-primary-300">
+                To confirm the permanent deletion of your account, please complete the form below.
+            </p>
+        </div>
+
+        <form id="delete-user" method="post" class="space-y-6">
+            <div asp-validation-summary="ModelOnly" class="text-red-400 font-medium text-sm rounded-lg bg-red-900/20 p-3" role="alert"></div>
+            
+            @if (Model.RequirePassword)
+            {
+                <div class="space-y-2">
+                    <label asp-for="Input.Password" class="block text-sm font-medium text-white">Please enter your password to confirm</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input asp-for="Input.Password" class="block w-full pl-10 pr-3 py-3 text-white bg-primary-800/50 border border-primary-700 rounded-lg focus:ring-primary-500 focus:border-primary-500 focus:outline-none placeholder-primary-400" placeholder="Enter your current password" autocomplete="current-password" aria-required="true" />
+                    </div>
+                    <span asp-validation-for="Input.Password" class="mt-1 text-sm text-red-400 block"></span>
+                    <p class="mt-1 text-xs text-primary-400">We need your password to verify your identity before deleting your account.</p>
+                </div>
+            }
+            
+            <!-- Confirmation checkbox -->
+            <div class="flex items-center">
+                <input id="confirm-deletion" name="confirmDeletion" type="checkbox" required class="h-4 w-4 text-red-600 focus:ring-red-500 border-primary-700 rounded bg-primary-800/50">
+                <label for="confirm-deletion" class="ml-2 block text-sm text-white">
+                    I understand that this action will permanently delete my account and cannot be undone
+                </label>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="pt-6 border-t border-white/10">
+                <button id="delete-account-button" type="submit" class="w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-md hover:shadow-lg" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Delete My Account Permanently
+                </button>
+                <a href="javascript:history.back()" class="mt-3 inline-flex items-center text-sm text-primary-300 hover:text-primary-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Cancel and return to account
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkbox = document.getElementById('confirm-deletion');
+            const deleteButton = document.getElementById('delete-account-button');
+            
+            // Enable/disable delete button based on checkbox
+            checkbox.addEventListener('change', function() {
+                deleteButton.disabled = !this.checked;
+            });
+            
+            // Double-confirm before submission
+            document.getElementById('delete-user').addEventListener('submit', function(event) {
+                if (!confirm('WARNING: You are about to permanently delete your account. This action CANNOT be undone. Are you absolutely sure?')) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+}

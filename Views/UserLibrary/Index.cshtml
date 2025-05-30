@@ -1,0 +1,1129 @@
+@model UserLibraryViewModel
+@{
+    ViewData["Title"] = "My Library";
+}
+
+<!-- Modern Hero Section with Gradient Animation -->
+<div class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900 py-12 sm:py-16 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900 opacity-80"></div>
+    <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+    
+    <!-- Animated elements -->
+    <div class="absolute top-20 left-10 w-20 h-20 rounded-full bg-primary-300 opacity-20 animate-float"></div>
+    <div class="absolute top-40 right-20 w-16 h-16 rounded-full bg-primary-500 opacity-10 animate-float-delay"></div>
+    <div class="absolute bottom-10 left-1/4 w-24 h-24 rounded-full bg-primary-400 opacity-20 animate-float-slow"></div>
+    
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
+        <div class="text-center">
+            <h1 class="text-3xl font-extrabold text-white sm:text-4xl md:text-5xl">
+                <span class="inline-block transform transition duration-300 hover:scale-105">My Library</span>
+            </h1>
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-primary-100 sm:mt-4">
+                Your personal collection of saved books and downloads
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Section -->
+<div class="max-w-9xl mx-auto px-2 sm:px-4 lg:px-8 py-4">
+    <!-- Status Messages -->
+    <div id="notification-container" class="mb-6"></div>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mb-6 rounded-lg bg-green-50 p-4 border-l-4 border-green-400 transition-all duration-500 transform animate-fade-in shadow-md">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-500 text-lg"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-green-800">
+                        @TempData["SuccessMessage"]
+                    </p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <div class="-mx-1.5 -my-1.5">
+                        <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" 
+                                class="inline-flex rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+                            <span class="sr-only">Dismiss</span>
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.Subscriptions.Any(s => s.IsActive))
+    {
+        <div class="mb-6 rounded-lg bg-primary-50 p-4 border border-primary-100 transition-all duration-500 transform animate-fade-in shadow-sm">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-crown text-primary-500 text-lg"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-primary-800">
+                        Premium Features Unlocked
+                    </p>
+                    <p class="text-xs text-primary-600 mt-1">
+                        @{
+                            var activeSubscriptions = Model.Subscriptions.Where(s => s.IsActive).ToList();
+                            var subscriptionNames = string.Join(", ", activeSubscriptions.Select(s => s.SubscriptionType));
+                        }
+                        You have active subscriptions to: @subscriptionNames
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Modern Tab Navigation -->
+    <div class="relative mb-8">
+        <nav class="flex space-x-2 md:space-x-4 overflow-x-auto hide-scrollbar pb-2" aria-label="Library sections">
+            <button class="tab-button px-4 py-2.5 text-sm font-medium rounded-lg shadow-sm bg-primary-900 text-white transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-900 active" data-target="savedBooks">
+                <i class="fas fa-bookmark mr-1.5"></i> Saved Books 
+               <span class="ml-1.5 py-0.5 px-2 bg-gray-100 rounded-full text-xs text-gray-700">
+                    @Model.SavedBooks.Count
+                </span>
+            </button>            <button class="tab-button px-4 py-2.5 text-sm font-medium rounded-lg shadow-sm bg-white text-gray-700 border border-gray-200 transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" data-target="downloads">
+                <i class="fas fa-download mr-1.5"></i> Downloads
+                <span class="ml-1.5 py-0.5 px-2 bg-gray-100 rounded-full text-xs text-gray-700">
+                    @Model.DownloadedBooks.Count
+                </span>
+            </button>
+            <button class="tab-button px-4 py-2.5 text-sm font-medium rounded-lg shadow-sm bg-white text-gray-700 border border-gray-200 transition-all duration-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" data-target="subscriptions">
+                <i class="fas fa-star mr-1.5"></i> Subscriptions
+                <span class="ml-1.5 py-0.5 px-2 bg-gray-100 rounded-full text-xs text-gray-700">
+                    @Model.Subscriptions.Count
+                </span>
+            </button>
+        </nav>
+        <!-- Animated indicator line -->
+        <div class="tab-indicator absolute bottom-0 left-0 h-0.5 bg-primary-500 transition-all duration-300"></div>
+    </div>
+    
+    <!-- Saved Books Tab -->
+    <div id="savedBooks" class="tab-content">
+        @if (Model.SavedBooks.Any())
+        {
+            <!-- Enhanced Search and filter section -->
+            <div class="flex flex-col md:flex-row justify-between mb-6 space-y-4 md:space-y-0">
+                <div class="w-full md:w-96">
+                    <div class="relative">
+                        <input type="text" id="bookSearch" placeholder="Search your books..." 
+                               class="block w-full px-4.5 py-3 pl-12 pr-3 border border-gray-200 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <button id="clearSearch" class="absolute inset-y-0 right-0 pr-3 items-center text-gray-400 hover:text-gray-600 hidden">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex space-x-3 items-center">
+                    <label for="sortBooks" class="text-sm font-medium text-gray-500 hidden md:block">Sort by:</label>
+                    <div class="relative">
+                        <select id="sortBooks" class="appearance-none pl-4 pr-10 py-2.5 text-sm font-medium bg-white border border-gray-200 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200">
+                            <option value="date_desc">Recently Added</option>
+                            <option value="date_asc">Oldest First</option>
+                            <option value="title_asc">A-Z</option>
+                            <option value="title_desc">Z-A</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced List View for Saved Books -->
+            <div id="booksListView" class="space-y-4">
+                @foreach (var book in Model.SavedBooks.OrderByDescending(b => b.SavedDate))
+                {
+                    <div class="book-card bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 flex border border-gray-100 group">
+                        <div class="flex-shrink-0 w-20 md:w-48 h-auto bg-gray-50">
+                            <div class="relative h-full">
+                                <img src="@(string.IsNullOrEmpty(book.ThumbnailUrl) ? "/images/no-cover.png" : book.ThumbnailUrl)" 
+                                     alt="@book.Title" 
+                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                                     loading="lazy">
+                                <div class="absolute top-2 right-2">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                                        @book.Source
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-4 flex flex-col">                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-primary-700 transition-colors duration-200">@book.Title</h3>
+                                    <p class="text-sm text-gray-600">
+                                        @(string.IsNullOrEmpty(book.Authors) ? "Unknown Author" : book.Authors)
+                                    </p>
+                                </div>
+                            </div>                            @if (!string.IsNullOrEmpty(book.Description))
+                            {
+                                <div class="mt-3 relative overflow-hidden description-container">
+                                    <div class="book-description relative prose prose-sm text-sm text-gray-600 transition-all duration-300 border-l-2 border-primary-200 pl-3 py-1">
+                                        <p>@book.Description</p>
+                                    </div>
+                                    <div class="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-white pointer-events-none description-fade"></div>
+                                    <button type="button" class="text-xs text-primary-600 hover:text-primary-800 font-medium toggle-description flex items-center transition-all duration-200">
+                                        <i class="fas fa-chevron-down mr-1 toggle-icon transition-transform duration-200"></i> <span>Read more</span>
+                                    </button>
+                                </div>
+                            }
+                            
+                            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                @if (book.PublishedYear.HasValue)
+                                {
+                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1">
+                                        <i class="far fa-calendar mr-1.5"></i>
+                                        @book.PublishedYear
+                                    </span>
+                                }
+                                @if (!string.IsNullOrEmpty(book.Publisher))
+                                {
+                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1">
+                                        <i class="fas fa-building mr-1.5"></i>
+                                        @book.Publisher
+                                    </span>
+                                }
+                                <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1">
+                                    <i class="fas fa-clock mr-1.5"></i>
+                                    Added @book.SavedDate.ToString("MMM dd, yyyy")
+                                </span>
+                            </div>
+                            
+                            <div class="mt-auto pt-3 flex flex-wrap justify-between items-center gap-2">
+                                @if (book.Source == "GoogleBooks")
+                                {
+                                    <a href="@Url.Action("BookDetail", "Home", new { id = book.BookId })" 
+                                       class="inline-flex items-center px-3 py-1.5 border border-primary-300 text-sm font-medium rounded-md text-primary-700 bg-white hover:bg-primary-50 transition-colors duration-200">
+                                        <i class="fas fa-book-open mr-1.5"></i> View Details
+                                    </a>
+                                }
+                                else if (book.Source == "OpenLibrary")
+                                {
+                                    <a href="@Url.Action("OpenLibraryDetail", "Home", new { key = book.BookId.Replace("/works/", "") })" 
+                                       class="inline-flex items-center px-3 py-1.5 border border-primary-300 text-sm font-medium rounded-md text-primary-700 bg-white hover:bg-primary-50 transition-colors duration-200">
+                                        <i class="fas fa-book-open mr-1.5"></i> View Details
+                                    </a>
+                                }
+                                
+                                <div class="flex space-x-2">
+                                    @if (!string.IsNullOrEmpty(book.PreviewLink))
+                                    {
+                                        <a href="@book.PreviewLink" target="_blank" 
+                                           class="inline-flex items-center px-2.5 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-200">
+                                            <i class="fas fa-external-link-alt mr-1.5"></i> Preview
+                                        </a>
+                                    }
+                                    <form asp-controller="UserLibrary" asp-action="RemoveSaved" method="post">
+                                        <input type="hidden" name="id" value="@book.Id" />
+                                        <button type="submit" 
+                                                class="inline-flex items-center px-2.5 py-1.5 border border-red-200 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-200">
+                                            <i class="fas fa-trash-alt mr-1.5"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {            <div class="text-center py-16 bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                <div class="relative">
+                    <div class="mx-auto h-24 w-24 text-gray-300 relative z-10">
+                        <i class="fas fa-book-open fa-5x animate-pulse"></i>
+                    </div>
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-primary-100 rounded-full opacity-50 blur-lg"></div>
+                </div>
+                <h3 class="mt-6 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-indigo-500">No saved books yet</h3>
+                <p class="mt-3 text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                    Start exploring our catalog and save books that interest you. They'll appear here for easy access.
+                </p>
+                <div class="mt-8">
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 justify-center">
+                        <a href="@Url.Action("Catalog", "Home")" 
+                           class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200">
+                            <i class="fab fa-google mr-2"></i> Browse Google Books
+                        </a>
+                        <a href="@Url.Action("OpenLibrary", "Home")" 
+                           class="inline-flex items-center justify-center px-5 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200">
+                            <i class="fas fa-book mr-2"></i> Explore Open Library
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Downloads Tab - Enhanced and Consistent with Saved Books -->
+    <div id="downloads" class="tab-content hidden">
+        @if (Model.DownloadedBooks.Any())
+        {
+            <!-- Downloads in list view - consistent with saved books style -->
+            <div class="space-y-4">
+                @foreach (var download in Model.DownloadedBooks.OrderByDescending(d => d.DownloadDate))
+                {
+                    <div class="download-item book-card bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 flex border border-gray-100 group" data-id="@download.Id">
+                        <div class="flex-shrink-0 w-20 md:w-32 h-auto bg-gray-50">
+                            <div class="relative h-full">
+                                <img src="@(string.IsNullOrEmpty(download.CoverImageUrl) ? "/images/no-cover.png" : download.CoverImageUrl)" 
+                                     alt="@download.Title" 
+                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                                     loading="lazy">
+                                <div class="absolute top-2 right-2">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        @download.Format
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-4 flex flex-col">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-primary-700 transition-colors duration-200">@download.Title</h3>
+                                    <p class="text-sm text-gray-600">
+                                        @(string.IsNullOrEmpty(download.Authors) ? "Unknown Author" : download.Authors)
+                                    </p>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    @download.SourceType
+                                </span>
+                            </div>
+                            
+                            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1">
+                                    <i class="fas fa-calendar mr-1.5"></i>
+                                    @download.DownloadDate.ToString("MMMM d, yyyy")
+                                </span>
+                            </div>
+                            
+                <div class="mt-auto pt-3 flex flex-wrap justify-between items-center gap-2">
+                                <div class="flex flex-wrap gap-2">
+                                    @if (download.SourceType == "GoogleBooks")
+                                    {
+                                        <a href="@Url.Action("BookDetail", "Home", new { id = download.BookId })" 
+                                          class="inline-flex items-center px-3 py-1.5 border border-primary-300 text-sm font-medium rounded-md text-primary-700 bg-white hover:bg-primary-50 transition-colors duration-200 hover:shadow-sm">
+                                            <i class="fas fa-book-open mr-1.5"></i> <span class="hidden sm:inline">View</span> Details
+                                        </a>
+                                    }                                    else if (download.SourceType == "OpenLibrary")
+                                    {
+                                        <a href="@Url.Action("OpenLibraryDetail", "Home", new { key = download.BookId.Replace("/works/", "") })" 
+                                          class="inline-flex items-center px-3 py-1.5 border border-primary-300 text-sm font-medium rounded-md text-primary-700 bg-white hover:bg-primary-50 transition-colors duration-200 hover:shadow-sm">
+                                            <i class="fas fa-book-open mr-1.5"></i> <span class="hidden sm:inline">View</span> Details
+                                        </a>
+                                    }
+                                    
+                                    @if (!string.IsNullOrEmpty(download.BookUrl))
+                                    {
+                                        <a href="@download.BookUrl" target="_blank" 
+                                           class="inline-flex items-center px-2.5 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors duration-200 hover:shadow-sm">
+                                            <i class="fas fa-external-link-alt mr-1.5"></i> <span class="hidden sm:inline">Source</span>
+                                        </a>
+                                    }
+                                </div>
+                                  <!-- Delete button with improved style and direct deletion -->
+                                <button type="button" 
+                                        class="inline-flex items-center px-2.5 py-1.5 border border-red-200 rounded-md text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 delete-download-btn focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hover:shadow-sm"
+                                        data-id="@download.Id"
+                                        data-title="@download.Title">
+                                    <i class="fas fa-trash-alt mr-1.5"></i> <span class="hidden sm:inline">Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Hidden form for anti-forgery token -->
+            <form id="antiforgeryForm" style="display: none;">
+                @Html.AntiForgeryToken()
+            </form>
+        }
+        else
+        {
+            <div class="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">                <div class="relative">
+                    <div class="mx-auto h-24 w-24 text-gray-300 animation-bounce-slow relative z-10">
+                        <i class="fas fa-download fa-5x"></i>
+                    </div>
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-indigo-100 rounded-full opacity-50 blur-lg"></div>
+                </div>
+                <h3 class="mt-6 text-2xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-indigo-500">No downloaded books</h3>
+                <p class="mt-3 text-sm text-gray-500 max-w-md mx-auto">
+                    You haven't downloaded any books yet. Download books to access them offline.
+                </p>
+                <div class="mt-8">
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 justify-center">
+                        <a href="@Url.Action("Catalog", "Home")" 
+                           class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200">
+                            <i class="fab fa-google mr-2"></i> Browse Google Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Subscriptions Tab - New Section -->
+    <div id="subscriptions" class="tab-content hidden">
+        <div class="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Your Active Subscriptions</h2>
+            
+            @if (Model.Subscriptions.Any())
+            {
+                <!-- Active subscriptions table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 mb-6">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscription Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiration Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var subscription in Model.Subscriptions)
+                            {
+                                <tr class="subscription-row hover:bg-gray-50 transition-all duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">@subscription.SubscriptionType</div>
+                                                <div class="text-sm text-gray-500 max-w-xs truncate">@subscription.SubscriptionDetails</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">@subscription.SubscriptionDate.ToString("MMM dd, yyyy")</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">@subscription.ExpirationDate.ToString("MMM dd, yyyy")</div>
+                                        <div class="text-xs text-gray-500">
+                                            @{
+                                                var daysRemaining = (subscription.ExpirationDate - DateTime.Now).Days;
+                                                var expirationText = daysRemaining > 0 
+                                                    ? $"{daysRemaining} days remaining" 
+                                                    : "Expired";
+                                            }
+                                            @expirationText
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if (subscription.IsActive)
+                                        {
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                Inactive
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <form asp-controller="UserLibrary" asp-action="CancelSubscription" method="post" class="inline">
+                                            <input type="hidden" name="id" value="@subscription.Id" />
+                                            <button type="submit" 
+                                                class="text-red-600 hover:text-red-900 transition-colors duration-200 cancel-subscription"
+                                                data-id="@subscription.Id"
+                                                data-type="@subscription.SubscriptionType">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <!-- No subscriptions state -->
+                <div class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="mx-auto h-24 w-24 text-gray-400 mb-4 flex items-center justify-center">
+                        <i class="fas fa-star fa-4x opacity-50"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">No active subscriptions</h3>
+                    <p class="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+                        You don't have any active subscriptions yet. Subscribe to unlock premium features and content.
+                    </p>
+                </div>
+            }
+
+            <!-- Available subscription plans - Enhanced design with only 2 platforms -->
+            <div class="mt-10 pt-8 border-t border-gray-200">
+                <div class="flex flex-col items-center mb-8">
+                    <h3 class="text-2xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-indigo-600">Premium Subscription Plans</h3>
+                    <div class="h-1 w-24 bg-gradient-to-r from-primary-500 to-indigo-500 rounded-full mt-3"></div>
+                    <p class="text-center text-gray-600 max-w-2xl mt-4">
+                        Subscribe to unlock premium features and enhance your reading experience with our platform partners.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Google Books Premium -->
+                    @{
+                        bool isSubscribedToGoogle = Model.Subscriptions.Any(s => s.SubscriptionType == "Google Books Premium" && s.IsActive);
+                    }
+                    <div class="bg-white rounded-xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
+                        <div class="h-24 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center relative overflow-hidden">
+                            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMzAgMjI1aDU0MHYxNTBIMzB6IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9Ii4yIi8+PC9zdmc+")] bg-no-repeat bg-center opacity-10"></div>
+                            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-400/30 to-transparent"></div>
+                            <i class="fab fa-google text-white text-5xl relative z-10 transform group-hover:scale-110 transition-all duration-300"></i>
+                            <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-300 rounded-full opacity-20 group-hover:opacity-30 transition-all duration-300"></div>
+                            @if (isSubscribedToGoogle)
+                            {
+                                <div class="absolute top-4 right-4">                                <span class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm active-subscription-badge">
+                                        <i class="fas fa-check-circle mr-1"></i> SUBSCRIBED
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="p-7">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">Google Books Premium</h3>
+                                    <div class="flex items-center mt-2">
+                                        <div class="flex">
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star-half-alt text-yellow-400"></i>
+                                        </div>
+                                        <span class="ml-2 text-sm text-gray-500">4.5 (1.2K+ subscribers)</span>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-sm font-medium">
+                                    Bestseller
+                                </div>
+                            </div>
+                            
+                            <div class="mt-5 flex items-end">
+                                <span class="text-4xl font-bold text-gray-900">$14.99</span>
+                                <span class="ml-2 text-gray-500 line-through text-lg">$19.99</span>
+                                <span class="ml-auto px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded">SAVE 25%</span>
+                            </div>
+                            
+                            <p class="mt-5 text-gray-600">Enhanced access to Google Books with premium features</p>
+                            
+                            <ul class="mt-5 space-y-3 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2"></i>
+                                    <span>Access to premium Google Books catalog</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2"></i>
+                                    <span>Unlimited full-text downloads</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2"></i>
+                                    <span>Priority access to new releases</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2"></i>
+                                    <span>Advanced search & filtering options</span>
+                                </li>
+                                @if (isSubscribedToGoogle)
+                                {
+                                    <li class="flex items-start mt-3 border-t border-blue-100 pt-3">
+                                        <i class="fas fa-unlock text-green-500 mt-0.5 mr-2"></i>
+                                        <span class="font-medium text-green-700">Your Premium Access is Active</span>
+                                    </li>
+                                }
+                            </ul>
+                            
+                            @if (isSubscribedToGoogle)
+                            {
+                                <div class="mt-7 border border-blue-200 bg-blue-50 rounded-lg p-4 flex flex-col">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2">
+                                            <i class="fas fa-check text-blue-600"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-blue-800">Currently subscribed</p>                                            @{
+                                                var googleSubscription = Model.Subscriptions
+                                                    .FirstOrDefault(s => s.SubscriptionType == "Google Books Premium" && s.IsActive);
+                                                if (googleSubscription != null)
+                                                {
+                                                    var daysRemaining = (googleSubscription.ExpirationDate - DateTime.Now).Days;
+                                                    <p class="text-xs text-blue-600 mt-1 subscription-expiry">
+                                                        Expires in @daysRemaining days (@googleSubscription.ExpirationDate.ToString("MMM dd, yyyy"))
+                                                    </p>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex justify-between">
+                                        <form asp-controller="UserLibrary" asp-action="RenewSubscription" method="post" class="">
+                                            <input type="hidden" name="subscriptionType" value="Google Books Premium" />
+                                            <button type="submit" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                <i class="fas fa-sync-alt mr-1"></i> Renew
+                                            </button>
+                                        </form>
+                                        
+                                        <form asp-controller="UserLibrary" asp-action="CancelSubscription" method="post" class="">
+                                            <input type="hidden" name="subscriptionType" value="Google Books Premium" />
+                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                <i class="fas fa-times-circle mr-1"></i> Cancel
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <form asp-controller="UserLibrary" asp-action="SubscribeToService" method="post" class="mt-7">
+                                    <input type="hidden" name="subscriptionType" value="Google Books Premium" />
+                                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg font-medium shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <i class="fas fa-crown mr-2"></i> Subscribe Now
+                                    </button>
+                                </form>
+                            }
+                            
+                            <p class="mt-3 text-center text-xs text-gray-500">
+                                30-day money-back guarantee. Cancel anytime.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Open Library Premium -->
+                    @{
+                        bool isSubscribedToOpenLibrary = Model.Subscriptions.Any(s => s.SubscriptionType == "Open Library Premium" && s.IsActive);
+                    }
+                    <div class="bg-white rounded-xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group relative">
+                        @if (!isSubscribedToOpenLibrary)
+                        {
+                            <div class="absolute top-4 right-4 z-20">
+                                <span class="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                                    MOST POPULAR
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="absolute top-4 right-4 z-20">                                <span class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm active-subscription-badge">
+                                    <i class="fas fa-check-circle mr-1"></i> SUBSCRIBED
+                                </span>
+                            </div>
+                        }
+                        
+                        <div class="h-24 bg-gradient-to-r from-amber-500 to-amber-600 flex items-center justify-center relative overflow-hidden">
+                            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMzAgMjI1aDU0MHYxNTBIMzB6IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9Ii4yIi8+PC9zdmc+")] bg-no-repeat bg-center opacity-10"></div>
+                            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-amber-400/30 to-transparent"></div>
+                            <i class="fas fa-book text-white text-5xl relative z-10 transform group-hover:scale-110 transition-all duration-300"></i>
+                            <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-amber-300 rounded-full opacity-20 group-hover:opacity-30 transition-all duration-300"></div>
+                        </div>
+                        
+                        <div class="p-7">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">Open Library Premium</h3>
+                                    <div class="flex items-center mt-2">
+                                        <div class="flex">
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                        </div>
+                                        <span class="ml-2 text-sm text-gray-500">5.0 (3K+ subscribers)</span>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-600 text-sm font-medium">
+                                    Featured
+                                </div>
+                            </div>
+                            
+                            <div class="mt-5 flex items-end">
+                                <span class="text-4xl font-bold text-gray-900">$16.99</span>
+                                <span class="ml-2 text-gray-500 line-through text-lg">$24.99</span>
+                                <span class="ml-auto px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded">SAVE 32%</span>
+                            </div>
+                            
+                            <p class="mt-5 text-gray-600">Ultimate access to Open Library's vast collection</p>
+                            
+                            <ul class="mt-5 space-y-3 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-amber-500 mt-0.5 mr-2"></i>
+                                    <span>Unlimited access to rare and historical books</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-amber-500 mt-0.5 mr-2"></i>
+                                    <span>Exclusive access to archive materials</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-amber-500 mt-0.5 mr-2"></i>
+                                    <span>Enhanced metadata and reading tools</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-amber-500 mt-0.5 mr-2"></i>
+                                    <span>Personal library organization features</span>
+                                </li>
+                                @if (isSubscribedToOpenLibrary)
+                                {
+                                    <li class="flex items-start mt-3 border-t border-amber-100 pt-3">
+                                        <i class="fas fa-unlock text-green-500 mt-0.5 mr-2"></i>
+                                        <span class="font-medium text-green-700">Your Premium Access is Active</span>
+                                    </li>
+                                }
+                            </ul>
+                            
+                            @if (isSubscribedToOpenLibrary)
+                            {
+                                <div class="mt-7 border border-amber-200 bg-amber-50 rounded-lg p-4 flex flex-col">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-amber-100 rounded-full p-2">
+                                            <i class="fas fa-check text-amber-600"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-amber-800">Currently subscribed</p>                                            @{
+                                                var openLibrarySubscription = Model.Subscriptions
+                                                    .FirstOrDefault(s => s.SubscriptionType == "Open Library Premium" && s.IsActive);
+                                                if (openLibrarySubscription != null)
+                                                {
+                                                    var daysRemaining = (openLibrarySubscription.ExpirationDate - DateTime.Now).Days;
+                                                    <p class="text-xs text-amber-600 mt-1 subscription-expiry">
+                                                        Expires in @daysRemaining days (@openLibrarySubscription.ExpirationDate.ToString("MMM dd, yyyy"))
+                                                    </p>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex justify-between">
+                                        <form asp-controller="UserLibrary" asp-action="RenewSubscription" method="post" class="">
+                                            <input type="hidden" name="subscriptionType" value="Open Library Premium" />
+                                            <button type="submit" class="text-amber-600 hover:text-amber-800 text-sm font-medium">
+                                                <i class="fas fa-sync-alt mr-1"></i> Renew
+                                            </button>
+                                        </form>
+                                        
+                                        <form asp-controller="UserLibrary" asp-action="CancelSubscription" method="post" class="">
+                                            <input type="hidden" name="subscriptionType" value="Open Library Premium" />
+                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                <i class="fas fa-times-circle mr-1"></i> Cancel
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <form asp-controller="UserLibrary" asp-action="SubscribeToService" method="post" class="mt-7">
+                                    <input type="hidden" name="subscriptionType" value="Open Library Premium" />
+                                    <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 px-4 rounded-lg font-medium shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                                        <i class="fas fa-crown mr-2"></i> Subscribe Now
+                                    </button>
+                                </form>
+                            }
+                            
+                            <p class="mt-3 text-center text-xs text-gray-500">
+                                30-day money-back guarantee. Cancel anytime.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-10 bg-gray-50 rounded-xl p-6 border border-gray-200">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-primary-500 text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-base font-medium text-gray-900">Subscription Benefits</h4>
+                            <p class="mt-2 text-sm text-gray-600">
+                                Our premium subscriptions provide enhanced access to our partner platforms, allowing you to access more books, download full-text content, and enjoy priority features. Choose the platform that best suits your reading preferences.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .animate-float {
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .animate-float-delay {
+            animation: float 7s ease-in-out 2s infinite;
+        }
+        
+        .animate-float-slow {
+            animation: float 10s ease-in-out 1s infinite;
+        }
+        
+        @@keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .bg-grid-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .animation-bounce-slow {
+            animation: bounce-slow 3s infinite;
+        }
+        
+        /* Subscription-specific animations */
+        .subscription-pulse {
+            animation: subscription-pulse 2s infinite;
+        }
+        
+        @@keyframes subscription-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        
+        .amber-subscription-pulse {
+            animation: amber-subscription-pulse 2s infinite;
+        }
+        
+        @@keyframes amber-subscription-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }
+        }
+        
+        .subscription-success {
+            animation: subscription-success 0.5s ease-in-out;
+        }
+        
+        @@keyframes subscription-success {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const tabIndicator = document.querySelector('.tab-indicator');
+            
+            function setActiveTab(target) {
+                // Reset all tabs
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.remove('bg-primary-900', 'text-white');
+                    btn.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+                });
+                
+                // Hide all tab contents
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Set active tab
+                const selectedBtn = document.querySelector(`.tab-button[data-target="${target}"]`);
+                const selectedContent = document.getElementById(target);
+                
+                if (selectedBtn && selectedContent) {
+                    selectedBtn.classList.add('active');
+                    selectedBtn.classList.add('bg-primary-900', 'text-white');
+                    selectedBtn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+                    
+                    // Update indicator position
+                    if (tabIndicator) {
+                        tabIndicator.style.width = `${selectedBtn.offsetWidth}px`;
+                        tabIndicator.style.left = `${selectedBtn.offsetLeft}px`;
+                    }
+                    
+                    // Animate content entrance
+                    selectedContent.classList.remove('hidden');
+                    selectedContent.classList.add('animate-fade-in');
+                    
+                    // Setup functionalities for active tab
+                    setupDescriptionToggles();
+                    setupDeleteFunctionality();
+                }
+            }
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = button.dataset.target;
+                    setActiveTab(target);
+                });
+            });
+            
+            // Initialize active tab
+            if (tabButtons.length > 0) {
+                const initialTab = document.querySelector('.tab-button.active')?.dataset.target || tabButtons[0].dataset.target;
+                setActiveTab(initialTab);
+            }
+            
+            // Book description toggle functionality
+            function setupDescriptionToggles() {
+                const toggleBtns = document.querySelectorAll('.toggle-description');
+                
+                toggleBtns.forEach(btn => {
+                    // Make sure we're not attaching duplicate event listeners
+                    btn.removeEventListener('click', toggleDescriptionHandler);
+                    btn.addEventListener('click', toggleDescriptionHandler);
+                });
+                
+                // Check if descriptions overflow and show/hide toggles as needed
+                document.querySelectorAll('.book-description').forEach(desc => {
+                    const hasOverflow = desc.scrollHeight > desc.clientHeight;
+                    const container = desc.closest('.description-container');
+                    
+                    if (container) {
+                        const fadeEl = container.querySelector('.description-fade');
+                        const toggleBtn = container.querySelector('.toggle-description');
+                        
+                        if (!hasOverflow && fadeEl && toggleBtn) {
+                            fadeEl.style.display = 'none';
+                            toggleBtn.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            function toggleDescriptionHandler() {
+                const container = this.closest('.description-container');
+                const description = container.querySelector('.book-description');
+                const fadeEl = container.querySelector('.description-fade');
+                const icon = this.querySelector('.toggle-icon');
+                const textSpan = this.querySelector('span');
+                
+                if (description) {
+                    if (description.classList.contains('expanded')) {
+                        // Collapse
+                        description.classList.remove('expanded');
+                        icon.style.transform = 'rotate(0deg)';
+                        textSpan.textContent = 'Read more';
+                        fadeEl.style.display = 'block';
+                    } else {
+                        // Expand
+                        description.classList.add('expanded');
+                        icon.style.transform = 'rotate(180deg)';
+                        textSpan.textContent = 'Read less';
+                        fadeEl.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Setup book sorting functionality
+            const sortSelect = document.getElementById('sortBooks');
+            const booksContainer = document.getElementById('booksListView');
+            
+            if (sortSelect && booksContainer) {
+                sortSelect.addEventListener('change', function() {
+                    const books = Array.from(booksContainer.children);
+                    const sortValue = this.value;
+                    
+                    books.sort((a, b) => {
+                        const titleA = a.querySelector('h3').textContent;
+                        const titleB = b.querySelector('h3').textContent;
+                        
+                        if (sortValue === 'title_asc') {
+                            return titleA.localeCompare(titleB);
+                        } else if (sortValue === 'title_desc') {
+                            return titleB.localeCompare(titleA);
+                        } else if (sortValue === 'date_asc' || sortValue === 'date_desc') {
+                            // Extract date from the book element
+                            const datesA = a.querySelectorAll('.inline-flex.items-center.rounded-md.bg-gray-50');
+                            const datesB = b.querySelectorAll('.inline-flex.items-center.rounded-md.bg-gray-50');
+                            
+                            let dateStrA = null;
+                            let dateStrB = null;
+                            
+                            // Find the date element with clock icon
+                            datesA.forEach(el => {
+                                if (el.innerHTML.includes('fa-clock')) dateStrA = el.textContent.trim();
+                            });
+                            
+                            datesB.forEach(el => {
+                                if (el.innerHTML.includes('fa-clock')) dateStrB = el.textContent.trim();
+                            });
+                            
+                            // Parse dates or use default
+                            const dateA = dateStrA ? new Date(dateStrA.replace('Added ', '')) : new Date(0);
+                            const dateB = dateStrB ? new Date(dateStrB.replace('Added ', '')) : new Date(0);
+                            
+                            return sortValue === 'date_asc' ? dateA - dateB : dateB - dateA;
+                        }
+                        
+                        return 0;
+                    });
+                    
+                    books.forEach(book => {
+                        booksContainer.appendChild(book);
+                    });
+                });
+            }
+            
+            // Setup delete functionality with loading animation
+            function setupDeleteFunctionality() {
+                document.querySelectorAll('.delete-download-btn').forEach(btn => {
+                    btn.removeEventListener('click', deleteDownloadHandler);
+                    btn.addEventListener('click', deleteDownloadHandler);
+                });
+            }
+            
+            function deleteDownloadHandler(e) {
+                e.preventDefault();
+                const downloadId = this.dataset.id;
+                const downloadTitle = this.dataset.title;
+                const downloadItem = this.closest('.download-item');
+                
+                if (!downloadId || !downloadItem) return;
+                
+                // Create overlay for visual feedback
+                const overlay = document.createElement('div');
+                overlay.className = 'fading-overlay';
+                downloadItem.style.position = 'relative';
+                downloadItem.appendChild(overlay);
+                
+                // Save original button content and disable button
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5 spinner"></i> <span class="hidden sm:inline">Deleting...</span>';
+                this.disabled = true;
+                this.classList.add('loading');
+                
+                // Create form with anti-forgery token
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/UserLibrary/RemoveDownloaded';
+                form.style.display = 'none';
+                
+                // Add the download ID
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = downloadId;
+                
+                // Clone the anti-forgery token
+                const antiForgeryToken = document.querySelector('#antiforgeryForm input[name="__RequestVerificationToken"]');
+                if (antiForgeryToken) {
+                    const tokenInput = antiForgeryToken.cloneNode(true);
+                    form.appendChild(tokenInput);
+                }
+                
+                form.appendChild(idInput);
+                document.body.appendChild(form);
+                
+                // Add removal animation to item
+                downloadItem.classList.add('row-removal');
+                
+                // Show success notification
+                showNotification(`"${downloadTitle}" successfully removed from your downloads`, 'success');
+                
+                // Submit form after animation starts
+                setTimeout(() => {
+                    form.submit();
+                }, 800);
+            }
+            
+            // Notification display function
+            function showNotification(message, type = 'success') {
+                const container = document.getElementById('notification-container');
+                if (!container) return;
+                
+                const notification = document.createElement('div');
+                notification.className = `rounded-lg p-4 shadow-md transition-all duration-300 transform opacity-0 translate-y-2 mb-4 ${
+                    type === 'success' ? 'bg-green-50 border-l-4 border-green-400' : 'bg-red-50 border-l-4 border-red-400'
+                }`;
+                
+                notification.innerHTML = `
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'} text-lg"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium ${type === 'success' ? 'text-green-800' : 'text-red-800'}">
+                                ${message}
+                            </p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <div class="-mx-1.5 -my-1.5">
+                                <button type="button" 
+                                        class="inline-flex rounded-md p-1.5 
+                                        ${type === 'success' 
+                                            ? 'text-green-500 hover:bg-green-100 focus:ring-green-500' 
+                                            : 'text-red-500 hover:bg-red-100 focus:ring-red-500'
+                                        } 
+                                        focus:outline-none focus:ring-2 focus:ring-offset-2">
+                                    <span class="sr-only">Dismiss</span>
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.prepend(notification);
+                
+                // Animate in
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                    notification.style.transform = 'translateY(0)';
+                }, 10);
+                
+                // Add click handler for close button
+                notification.querySelector('button').addEventListener('click', () => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                });
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.style.opacity = '0';
+                        notification.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            if (notification.parentNode) notification.remove();
+                        }, 300);
+                    }
+                }, 5000);
+            }
+            
+            // Add shimmer effect to subscription cards
+            document.querySelectorAll('.bg-white.rounded-xl').forEach(card => {
+                const shimmer = document.createElement('div');
+                shimmer.className = 'shimmer';
+                card.classList.add('subscription-card');
+                card.appendChild(shimmer);
+            });
+
+            // Initialize all functionalities
+            setupDescriptionToggles();
+            setupDeleteFunctionality();
+        });
+    </script>
+}
+
+@* Add hidden form with anti-forgery token *@
+<div id="notification-container"></div>
+<form id="antiforgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>

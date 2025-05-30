@@ -1,0 +1,144 @@
+@page
+@model EmailModel
+@{
+    ViewData["Title"] = "Email";
+    ViewData["ActivePage"] = ManageNavPages.Email;
+}
+
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-white">Email Settings</h2>
+        <p class="text-primary-200 text-sm mt-1">Manage your email address and verification status</p>
+    </div>
+    
+    <div class="mt-4 sm:mt-0">
+        <div class="flex items-center @(Model.IsEmailConfirmed ? "bg-green-900/30" : "bg-yellow-900/30") px-4 py-2 rounded-lg">
+            @if (Model.IsEmailConfirmed)
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <p class="text-xs text-primary-200">Email Status</p>
+                    <p class="text-white text-sm font-semibold">Verified</p>
+                </div>
+            }
+            else
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <p class="text-xs text-primary-200">Email Status</p>
+                    <p class="text-white text-sm font-semibold">Unverified</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Status Message -->
+<div class="mb-6">
+    <partial name="_StatusMessage" for="StatusMessage" />
+</div>
+
+<!-- Email Form Card -->
+<div class="bg-white/5 backdrop-blur-sm rounded-xl p-2 sm:p-4 shadow-lg border border-white/10">
+    <div class="space-y-8">
+        <div>
+            <h3 class="text-lg font-medium text-primary-100 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+                Email Management
+            </h3>
+            <p class="mt-1 text-sm text-primary-300">Update your email address and verification status</p>
+        </div>
+
+        <form id="email-form" method="post" class="space-y-6">
+            
+            <!-- Current Email Section -->
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-white mb-1">Current Email</label>
+                    <div class="relative">
+                        @if (Model.IsEmailConfirmed)
+                        {
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                    </svg>
+                                </div>
+                                <input asp-for="Email" class="block w-full pl-10 pr-12 py-3 text-primary-200 bg-primary-800/50 border border-primary-700 rounded-lg focus:outline-none placeholder-primary-400" placeholder="your@email.com" disabled />
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span class="h-5 w-5 text-green-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-green-400">Your email has been verified</p>
+                        }
+                        else
+                        {
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                    </svg>
+                                </div>
+                                <input asp-for="Email" class="block w-full pl-10 pr-3 py-3 text-primary-200 bg-primary-800/50 border border-primary-700 rounded-lg focus:outline-none placeholder-primary-400" placeholder="your@email.com" disabled />
+                            </div>
+                            <div class="mt-2">
+                                <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="inline-flex items-center px-4 py-2 border border-primary-500 text-sm font-medium rounded-lg text-primary-300 bg-transparent hover:bg-primary-800/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                    Send verification email
+                                </button>
+                                <p class="mt-1 text-xs text-yellow-400">Email not verified. Please verify your email to access all features.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- New Email Section with Divider -->
+                <div class="pt-6 border-t border-white/10">
+                    <div class="mt-4">
+                        <label asp-for="Input.NewEmail" class="block text-sm font-medium text-white mb-1">New Email</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                </svg>
+                            </div>
+                            <input asp-for="Input.NewEmail" class="block w-full pl-10 pr-3 py-3 text-white bg-primary-800/50 border border-primary-700 rounded-lg focus:ring-primary-500 focus:border-primary-500 focus:outline-none placeholder-primary-400" placeholder="Enter your new email address" autocomplete="email" aria-required="true" />
+                        </div>
+                        <span asp-validation-for="Input.NewEmail" class="mt-1 text-sm text-red-400 block"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Button Section -->
+            <div class="pt-6 border-t border-white/10">
+                <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all shadow-md hover:shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                    </svg>
+                    Change Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

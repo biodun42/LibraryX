@@ -1,0 +1,843 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c4a6e" />
+    <title>@ViewData["Title"] - LibraryX</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/custom-animations.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LibraryX.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    @await RenderSectionAsync("Styles", required: false)
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-down': 'slideDown 0.4s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-in-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'rotate': 'rotate 1.5s ease-in-out infinite',
+                        'slide-in-right': 'slideInRight 0.4s ease-out',
+                        'slide-in-left': 'slideInLeft 0.4s ease-out',
+                        'bounce-subtle': 'bounceSubtle 2s ease infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideDown: {
+                            '0%': { transform: 'translateY(-10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        rotate: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(20px)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        slideInLeft: {
+                            '0%': { transform: 'translateX(-20px)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        bounceSubtle: {
+                            '0%, 100%': { transform: 'translateY(-2px)' },
+                            '50%': { transform: 'translateY(2px)' },
+                        }
+                    },      
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50 font-sans antialiased">
+<!-- Advanced Navigation Bar Design -->
+<header id="main-header" class="fixed w-full top-0 z-50 transition-all duration-500">
+    <div class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900 shadow-xl backdrop-blur-md bg-opacity-90">
+        <nav class="relative max-w-9xl mx-auto px-3 sm:px-4 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo and Brand -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="group flex items-center space-x-2">
+                        <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-2.5 rounded-lg shadow-md transition-all duration-300 group-hover:scale-105 group-hover:rotate-3">
+                            <i class="fas fa-book-reader text-lg md:text-xl"></i>
+                        </div>
+                        <span class="text-xl md:text-2xl font-bold text-white transition-colors duration-300 group-hover:text-primary-300">
+                            Library<span class="text-primary-300">X</span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation - Redesigned with dropdowns -->
+                <div class="hidden md:flex md:items-center md:justify-center flex-1 ml-6">
+                    <div class="flex items-center space-x-0.5 lg:space-x-2">
+                        <!-- Home Link -->
+                        <a asp-area="" asp-controller="Home" asp-action="Index" 
+                           class="text-white hover:text-primary-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 relative group">
+                            <span class="relative z-10 flex items-center">
+                                <i class="fas fa-home mr-1.5"></i> 
+                                <span>Home</span>
+                            </span>
+                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-300 group-hover:w-full transition-all duration-300"></span>
+                        </a>
+                        
+                        <!-- Catalog Dropdown -->
+                        <div class="relative group">
+                            <button type="button" 
+                                   class="text-white hover:text-primary-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 relative group inline-flex items-center">
+                                <span class="relative z-10 flex items-center">
+                                    <i class="fas fa-book mr-1.5"></i>
+                                    <span>Catalogs</span>
+                                    <i class="fas fa-chevron-down ml-1.5 text-xs transition-transform duration-300 group-hover:rotate-180"></i>
+                                </span>
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-300 group-hover:w-full transition-all duration-300"></span>
+                            </button>
+                            <!-- Dropdown content -->
+                            <div class="hidden group-hover:block absolute left-0 mt-1 w-56 rounded-lg shadow-lg overflow-hidden transform origin-top-left transition-all duration-300 bg-white backdrop-filter backdrop-blur-lg bg-opacity-90 border border-primary-100 z-50">
+                                <div class="py-1.5">
+                                    <a asp-controller="Home" asp-action="Catalog" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-primary-100 text-primary-600 mr-3">
+                                            <i class="fab fa-google"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Google Books</p>
+                                            <p class="text-xs text-gray-500">Explore millions of titles</p>
+                                        </div>
+                                    </a>
+                                    <a asp-controller="Home" asp-action="OpenLibrary" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-primary-100 text-primary-600 mr-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Open Library</p>
+                                            <p class="text-xs text-gray-500">Open-source books</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-area="" asp-controller="UserLibrary" asp-action="Index"
+                               class="text-white hover:text-primary-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 relative group">
+                                <span class="relative z-10 flex items-center">
+                                    <i class="fas fa-bookmark mr-1.5"></i>
+                                    <span>My Library</span>
+                                </span>
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-300 group-hover:w-full transition-all duration-300"></span>
+                            </a>
+                        }
+                        
+                        <!-- About Dropdown -->
+                        <div class="relative group">
+                            <button type="button" 
+                                   class="text-white hover:text-primary-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 relative group inline-flex items-center">
+                                <span class="relative z-10 flex items-center">
+                                    <i class="fas fa-info-circle mr-1.5"></i>
+                                    <span>About</span>
+                                    <i class="fas fa-chevron-down ml-1.5 text-xs transition-transform duration-300 group-hover:rotate-180"></i>
+                                </span>
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-300 group-hover:w-full transition-all duration-300"></span>
+                            </button>
+                            <!-- Dropdown content -->
+                            <div class="hidden group-hover:block absolute left-0 mt-1 w-56 rounded-lg shadow-lg overflow-hidden transform origin-top-left transition-all duration-300 bg-white backdrop-filter backdrop-blur-lg bg-opacity-90 border border-primary-100 z-50">
+                                <div class="py-1.5">
+                                    <a asp-controller="Home" asp-action="About" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-primary-100 text-primary-600 mr-3">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">About Us</p>
+                                            <p class="text-xs text-gray-500">Our mission and story</p>
+                                        </div>
+                                    </a>
+                                    <a asp-controller="Home" asp-action="Privacy" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-primary-100 text-primary-600 mr-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Privacy Policy</p>
+                                            <p class="text-xs text-gray-500">We protect your data</p>
+                                        </div>
+                                    </a>
+                                    <a asp-controller="Home" asp-action="Contact" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-primary-100 text-primary-600 mr-3">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">Contact</p>
+                                            <p class="text-xs text-gray-500">Get in touch with us</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    
+                <!-- User Authentication Section with dropdown -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="relative">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <!-- Authenticated User Dropdown -->
+                            <div class="group">                                <button type="button" class="flex items-center text-sm font-medium text-white hover:text-primary-300 focus:outline-none transition-all duration-300">
+                                    <div class="h-8 w-8 rounded-full bg-primary-700 flex items-center justify-center border border-primary-600 group-hover:border-primary-300">
+                                        <i class="fas fa-user"></i>
+                                    </div>                                    @{
+                                        string displayName = User.Identity?.Name;
+                                        try 
+                                        {
+                                            var userManager = Context.RequestServices.GetService<Microsoft.AspNetCore.Identity.UserManager<LibraryX.Models.ApplicationUser>>();
+                                            var currentUser = userManager?.GetUserAsync(User)?.Result;
+                                            if (currentUser != null && !string.IsNullOrEmpty(currentUser.FullName))
+                                            {
+                                                displayName = currentUser.FullName;
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            // Fallback to using claims if there's an issue with the database
+                                            // displayName is already set to User.Identity?.Name above
+                                        }
+                                    }
+                                    <span class="mx-2 hidden lg:block">@displayName</span>
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-300 group-hover:rotate-180"></i>
+                                </button>
+                                
+                                <!-- User Dropdown Menu -->
+                                <div class="hidden group-hover:block absolute right-0 mt-2 w-64 rounded-lg shadow-lg overflow-hidden transform origin-top-right transition-all duration-300 bg-white backdrop-filter backdrop-blur-lg bg-opacity-90 border border-primary-100 z-50">
+                                    <div class="pt-3 pb-2 px-4 border-b border-gray-200">
+                                        <p class="text-sm font-medium text-gray-900">@displayName</p>
+                                        <p class="text-xs text-gray-500 mt-1">Joined as Member</p>
+                                    </div>
+                                    <div class="py-1">                                        <a asp-area="Identity" asp-page="/Account/Manage/Index"  class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                            <i class="fas fa-user-circle mr-3 text-primary-600"></i>
+                                            <span>My Profile</span>
+                                        </a>
+                                        <a asp-area="" asp-controller="UserLibrary" asp-action="Index" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 transition-colors">
+                                            <i class="fas fa-book mr-3 text-primary-600"></i>
+                                            <span>My Library</span>
+                                        </a>
+                                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                            <button type="submit" class="flex w-full items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                                <i class="fas fa-sign-out-alt mr-3"></i>
+                                                <span>Sign Out</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="flex items-center space-x-2">
+                                <a asp-area="Identity" asp-page="/Account/Login" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                                    <i class="fas fa-sign-in-alt mr-2"></i>
+                                    <span>Sign In</span>
+                                </a>
+                                <a asp-area="Identity" asp-page="/Account/Register" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                                    <i class="fas fa-user-plus mr-2"></i>
+                                    <span>Sign Up</span>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Enhanced Mobile Menu Trigger -->
+                <div class="flex items-center md:hidden">
+                    <button type="button" id="mobile-menu-button" 
+                            class="inline-flex items-center justify-center p-2 rounded-full text-white hover:text-primary-300 hover:bg-primary-800/40 focus:outline-none transition-all duration-300"
+                            aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <div class="w-7 h-7 flex flex-col items-center justify-center space-y-1.5 relative">
+                            <span id="hamburger-top" class="w-6 h-0.5 bg-current rounded-full transform transition-all duration-300"></span>
+                            <span id="hamburger-middle" class="w-6 h-0.5 bg-current rounded-full transform transition-all duration-300"></span>
+                            <span id="hamburger-bottom" class="w-6 h-0.5 bg-current rounded-full transform transition-all duration-300"></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Ultra-Modern Mobile Navigation Menu -->
+    <div id="mobile-menu" class="fixed inset-0 z-[100] transition-all duration-500 opacity-0 pointer-events-none">
+        <!-- Backdrop with blur effect -->
+        <div class="absolute inset-0 bg-gradient-to-b from-primary-900/95 to-primary-800/95 backdrop-blur-xl transition-all duration-500 opacity-0" id="mobile-backdrop"></div>
+        
+        <!-- Side Navigation Panel -->
+        <div id="mobile-panel" class="absolute top-0 right-0 w-full max-w-sm h-full bg-primary-800 transform translate-x-full transition-all duration-500 flex flex-col shadow-2xl">
+            <!-- Header with close button -->
+            <div class="flex items-center justify-between p-6 border-b border-primary-700/30">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-2 rounded-lg shadow-md">
+                        <i class="fas fa-book-reader text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-white">
+                        Library<span class="text-primary-300">X</span>
+                    </span>
+                </div>
+                <button type="button" id="mobile-menu-close" 
+                        class="p-2 rounded-full text-white hover:text-primary-300 hover:bg-primary-700/40 focus:outline-none transition-all duration-300">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Scrollable Content Area -->
+            <div class="flex-grow overflow-y-auto scrollbar-hide">
+                <!-- User Profile Section -->
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="p-4 m-4 bg-gradient-to-r from-primary-700/40 to-primary-700/20 backdrop-blur-sm rounded-xl">
+                        <div class="flex items-center space-x-4">
+                            <div class="h-14 w-14 bg-gradient-to-br from-primary-500 to-primary-400 rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="fas fa-user text-xl text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium text-lg">@User.Identity?.Name?.Split('@')?.FirstOrDefault()</p>
+                                <p class="text-primary-300 text-sm">Member</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2">                            <a asp-controller="Home" asp-action="Profile"
+                               class="flex items-center justify-center space-x-1 px-3 py-2.5 rounded-lg bg-primary-600/40 hover:bg-primary-600/60 text-white transition-all duration-200">
+                                <i class="fas fa-user-cog text-sm"></i>
+                                <span class="text-sm">Profile</span>
+                            </a>
+                            <form class="inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                <button type="submit" 
+                                        class="w-full flex items-center justify-center space-x-1 px-3 py-2.5 rounded-lg bg-primary-600/40 hover:bg-primary-600/60 text-white transition-all duration-200">
+                                    <i class="fas fa-sign-out-alt text-sm"></i>
+                                    <span class="text-sm">Log out</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 m-4">
+                        <div class="grid grid-cols-1 gap-3">
+                            <a asp-area="Identity" asp-page="/Account/Login" 
+                               class="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white transition-all duration-300 shadow-md">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Sign In</span>
+                            </a>
+                            <a asp-area="Identity" asp-page="/Account/Register" 
+                               class="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-transparent border border-primary-500 hover:bg-primary-700/30 text-primary-300 hover:text-white transition-all duration-300 shadow-md">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Create Account</span>
+                            </a>
+                        </div>
+                    </div>
+                }
+                
+                <!-- Navigation with Accordions -->
+                <div class="p-4">
+                    <nav>
+                        <!-- Main Navigation -->
+                        <div class="mb-6">
+                            <a asp-area="" asp-controller="Home" asp-action="Index" 
+                               class="flex items-center justify-between px-4 py-3.5 rounded-xl text-white hover:bg-primary-700/50 transition-all duration-200 mb-2">
+                                <div class="flex items-center">
+                                    <div class="bg-primary-700/50 h-10 w-10 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-home text-primary-300"></i>
+                                    </div>
+                                    <span class="font-medium">Home</span>
+                                </div>
+                            </a>
+                            
+                            <!-- Catalog Accordion -->
+                            <div class="mb-2 rounded-xl overflow-hidden hover:bg-primary-700/20 transition-colors duration-200">
+                                <button type="button" id="catalog-accordion-btn"
+                                        class="flex items-center justify-between w-full px-4 py-3.5 text-white focus:outline-none transition-colors duration-200">
+                                    <div class="flex items-center">
+                                        <div class="bg-primary-700/50 h-10 w-10 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-book text-primary-300"></i>
+                                        </div>
+                                        <span class="font-medium">Catalogs</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-primary-400 transition-transform duration-300" id="catalog-icon"></i>
+                                </button>
+                                <div class="hidden pl-16 pb-3" id="catalog-content">
+                                    <a asp-area="" asp-controller="Home" asp-action="Catalog"
+                                       class="flex items-center py-3 text-primary-200 hover:text-white transition-colors">
+                                        <i class="fab fa-google mr-3 text-primary-400"></i>
+                                        <span>Google Books</span>
+                                    </a>
+                                    <a asp-area="" asp-controller="Home" asp-action="OpenLibrary"
+                                       class="flex items-center py-3 text-primary-200 hover:text-white transition-colors">
+                                        <i class="fas fa-book-open mr-3 text-primary-400"></i>
+                                        <span>Open Library</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <a asp-area="" asp-controller="UserLibrary" asp-action="Index"
+                                   class="flex items-center justify-between px-4 py-3.5 rounded-xl text-white hover:bg-primary-700/50 transition-all duration-200 mb-2">
+                                    <div class="flex items-center">
+                                        <div class="bg-primary-700/50 h-10 w-10 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-bookmark text-primary-300"></i>
+                                        </div>
+                                        <span class="font-medium">My Library</span>
+                                    </div>
+                                </a>
+                            }
+                            
+                            <!-- About Accordion -->
+                            <div class="rounded-xl overflow-hidden hover:bg-primary-700/20 transition-colors duration-200">
+                                <button type="button" id="about-accordion-btn"
+                                        class="flex items-center justify-between w-full px-4 py-3.5 text-white focus:outline-none transition-colors duration-200">
+                                    <div class="flex items-center">
+                                        <div class="bg-primary-700/50 h-10 w-10 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-info-circle text-primary-300"></i>
+                                        </div>
+                                        <span class="font-medium">About</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-primary-400 transition-transform duration-300" id="about-icon"></i>
+                                </button>
+                                <div class="hidden pl-16 pb-3" id="about-content">
+                                    <a asp-area="" asp-controller="Home" asp-action="About"
+                                       class="flex items-center py-3 text-primary-200 hover:text-white transition-colors">
+                                        <i class="fas fa-info-circle mr-3 text-primary-400"></i>
+                                        <span>About Us</span>
+                                    </a>
+                                    <a asp-area="" asp-controller="Home" asp-action="Privacy"
+                                       class="flex items-center py-3 text-primary-200 hover:text-white transition-colors">
+                                        <i class="fas fa-shield-alt mr-3 text-primary-400"></i>
+                                        <span>Privacy Policy</span>
+                                    </a>
+                                    <a href="#"
+                                       class="flex items-center py-3 text-primary-200 hover:text-white transition-colors">
+                                        <i class="fas fa-envelope mr-3 text-primary-400"></i>
+                                        <span>Contact Us</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+            
+           
+        </div>
+    </div>
+</header>
+
+<!-- Header Spacer -->
+<div class="h-20 md:h-20"></div>
+
+<!-- Main Content -->
+<main class="flex-grow relative">
+    @RenderBody()
+</main>
+
+<!-- Advanced Footer - Enhanced Version -->
+<footer class="bg-gradient-to-br from-primary-900 to-primary-800 text-white relative">
+    
+    <!-- Main Footer Content -->
+    <div class="relative max-w-9xl mx-auto px-2 sm:px-4 lg:px-8 pt-16 pb-10">
+        <!-- Top section with columns -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
+            <!-- Brand Column -->
+            <div class="space-y-6">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-br from-primary-400 to-primary-600 text-white p-2 rounded-lg shadow-lg">
+                        <i class="fas fa-book-reader text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold">
+                        Library<span class="text-primary-300">X</span>
+                    </span>
+                </div>
+                
+                <p class="text-primary-100 max-w-xs">
+                    Your digital gateway to knowledge and learning resources. Discover, borrow, and engage with our extensive collection.
+                </p>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-primary-800/50 p-3 rounded-lg">
+                        <div class="text-primary-300 text-xl font-bold">50,000+</div>
+                        <div class="text-xs text-primary-200">Digital Resources</div>
+                    </div>
+                    <div class="bg-primary-800/50 p-3 rounded-lg">
+                        <div class="text-primary-300 text-xl font-bold">200+</div>
+                        <div class="text-xs text-primary-200">Partner Institutions</div>
+                    </div>
+                </div>
+                
+                <!-- Social Icons -->
+                <div class="flex space-x-4">
+                    <a href="#" class="h-10 w-10 rounded-full bg-primary-800 flex items-center justify-center hover:bg-primary-700 transition-all">
+                        <i class="fab fa-facebook-f text-primary-300"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-primary-800 flex items-center justify-center hover:bg-primary-700 transition-all">
+                        <i class="fab fa-twitter text-primary-300"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-primary-800 flex items-center justify-center hover:bg-primary-700 transition-all">
+                        <i class="fab fa-instagram text-primary-300"></i>
+                    </a>
+                    <a href="#" class="h-10 w-10 rounded-full bg-primary-800 flex items-center justify-center hover:bg-primary-700 transition-all">
+                        <i class="fab fa-linkedin-in text-primary-300"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div>
+                <h4 class="text-lg font-semibold mb-6 text-white">Main Navigation</h4>
+                <ul class="space-y-3">
+                    <li>
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                            <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="" asp-controller="Home" asp-action="Catalog" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                            <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                            Catalog
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="" asp-controller="Home" asp-action="About" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                            <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                            About Us
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="" asp-controller="Home" asp-action="Privacy" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                            <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                            Privacy
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Account Links -->
+            <div>
+                <h4 class="text-lg font-semibold mb-6 text-white">Account</h4>
+                <ul class="space-y-3">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {                        <li>
+                            <a asp-controller="Home" asp-action="Profile" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-user-cog mr-2 text-primary-400"></i>
+                                My Account
+                            </a>
+                        </li>
+                        <li>
+                            <form class="inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                <button type="submit" class="group flex w-full items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                    <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                    <i class="fas fa-sign-out-alt mr-2 text-primary-400"></i>
+                                    Sign Out
+                                </button>
+                            </form>
+                        </li>
+                         <li>
+                            <button class="flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-info-circle mr-2 text-primary-400"></i>
+                                Why Join?
+                            </button>
+                        </li>
+                        <li>
+                            <button class="flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-gift mr-2 text-primary-400"></i>
+                                Membership Benefits
+                            </button>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <a asp-area="Identity" asp-page="/Account/Login" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-sign-in-alt mr-2 text-primary-400"></i>
+                                Sign In
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="Identity" asp-page="/Account/Register" class="group flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-user-plus mr-2 text-primary-400"></i>
+                                Create Account
+                            </a>
+                        </li>
+                        <li>
+                            <button class="flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-info-circle mr-2 text-primary-400"></i>
+                                Why Join?
+                            </button>
+                        </li>
+                        <li>
+                            <button class="flex items-center text-primary-200 hover:text-primary-300 transition-colors">
+                                <span class="w-1.5 h-1.5 bg-primary-300 rounded-full mr-2 transform scale-0 group-hover:scale-100 transition-transform"></span>
+                                <i class="fas fa-gift mr-2 text-primary-400"></i>
+                                Membership Benefits
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+            
+            <!-- Newsletter and Contact -->
+            <div>
+                <h4 class="text-lg font-semibold mb-6 text-white">Connect With Us</h4>
+                
+                <!-- Newsletter -->
+                <div class="mb-6">
+                    <p class="text-primary-200 mb-3">Stay updated with our latest additions and events</p>
+                    <form class="flex">
+                        <input type="email" placeholder="Your email address" 
+                               class="w-full px-4 py-2 bg-primary-800/70 border border-primary-700 rounded-l-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 text-white placeholder-primary-400">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-primary-500 hover:bg-primary-400 transition-colors rounded-r-md flex items-center justify-center">
+                            <i class="fas fa-arrow-right text-white"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Contact -->
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3 text-primary-200">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-primary-800/80 flex items-center justify-center">
+                            <i class="fas fa-map-marker-alt text-primary-300"></i>
+                        </div>
+                        <span>123 Library Lane, Bookville</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-primary-200">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-primary-800/80 flex items-center justify-center">
+                            <i class="fas fa-envelope text-primary-300"></i>
+                        </div>
+                        <span>contact@libraryX.edu</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-primary-200">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-primary-800/80 flex items-center justify-center">
+                            <i class="fas fa-phone-alt text-primary-300"></i>
+                        </div>
+                        <span>(123) 456-7890</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- App badges -->
+        <div class="flex flex-wrap justify-center mt-10 gap-4 border-t border-primary-700/50 pt-8">
+            <a href="#" class="transition-transform hover:scale-105">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store" class="h-10">
+            </a>
+            <a href="#" class="transition-transform hover:scale-105">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" class="h-10">
+            </a>
+        </div>
+        
+        <!-- Bottom copyright section -->
+        <div class="mt-8 pt-8 border-t border-primary-700/50 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-center md:text-left">
+                <p class="text-primary-300">
+                    &copy; @DateTime.Now.Year - LibraryX System
+                </p>
+                <ul class="flex flex-wrap justify-center gap-4 text-primary-400 text-sm">
+                    <li><a href="#terms" class="hover:text-primary-300 transition-colors">Terms</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Privacy" class="hover:text-primary-300 transition-colors">Privacy</a></li>
+                    <li><a href="#cookies" class="hover:text-primary-300 transition-colors">Cookies</a></li>
+                    <li><a href="#accessibility" class="hover:text-primary-300 transition-colors">Accessibility</a></li>
+                </ul>
+            </div>
+            
+            <p class="text-primary-400 text-xs mt-4 md:mt-0">
+                Designed with <i class="fas fa-heart text-primary-500"></i> for readers everywhere
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobilePanel = document.getElementById('mobile-panel');
+    const mobileBackdrop = document.getElementById('mobile-backdrop');
+    const body = document.body;
+    
+    // Hamburger animation elements
+    const hamburgerTop = document.getElementById('hamburger-top');
+    const hamburgerMiddle = document.getElementById('hamburger-middle');
+    const hamburgerBottom = document.getElementById('hamburger-bottom');
+    
+    // Scroll behavior for navbar
+    window.addEventListener('scroll', function() {
+        const header = document.getElementById('main-header');
+        if (window.scrollY > 10) {
+            header.classList.add('bg-opacity-95', 'backdrop-blur-md', 'shadow-md');
+        } else {
+            header.classList.remove('bg-opacity-95', 'backdrop-blur-md', 'shadow-md');
+        }
+    });
+    
+    // Mobile menu toggle with advanced animation
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        toggleMobileMenu(true);
+    });
+    
+    // Close menu when clicking the X button
+    document.getElementById('mobile-menu-close').addEventListener('click', function() {
+        toggleMobileMenu(false);
+    });
+    
+    // Close menu when clicking the backdrop
+    mobileBackdrop.addEventListener('click', function() {
+        toggleMobileMenu(false);
+    });
+    
+    function toggleMobileMenu(show) {
+        if (show) {
+            // Show menu
+            mobileMenu.classList.add('opacity-100');
+            mobileMenu.classList.remove('opacity-0', 'pointer-events-none');
+            mobileBackdrop.classList.add('opacity-100');
+            mobileBackdrop.classList.remove('opacity-0');
+            mobilePanel.classList.remove('translate-x-full');
+            body.classList.add('overflow-hidden');
+            
+            // Animate hamburger to X
+            hamburgerTop.classList.add('rotate-45', 'translate-y-1.5');
+            hamburgerMiddle.classList.add('opacity-0');
+            hamburgerBottom.classList.add('-rotate-45', '-translate-y-1.5');
+            
+            // Add entrance animation to menu items with staggered delay
+            const menuItems = mobilePanel.querySelectorAll('nav a, nav button');
+            menuItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    item.style.transition = 'all 0.4s ease-out';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 100 + (index * 60));
+            });
+        } else {
+            // Hide menu
+            mobileBackdrop.classList.remove('opacity-100');
+            mobileBackdrop.classList.add('opacity-0');
+            mobilePanel.classList.add('translate-x-full');
+            
+            // Return hamburger to normal
+            hamburgerTop.classList.remove('rotate-45', 'translate-y-1.5');
+            hamburgerMiddle.classList.remove('opacity-0');
+            hamburgerBottom.classList.remove('-rotate-45', '-translate-y-1.5');
+            
+            // Wait for animation to finish before hiding menu completely
+            setTimeout(() => {
+                if (!mobileBackdrop.classList.contains('opacity-100')) {
+                    mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+                    mobileMenu.classList.remove('opacity-100');
+                    body.classList.remove('overflow-hidden');
+                }
+            }, 500);
+        }
+    }
+    
+    // Mobile Accordion functionality
+    const accordions = [
+        {
+            button: document.getElementById('catalog-accordion-btn'),
+            content: document.getElementById('catalog-content'),
+            icon: document.getElementById('catalog-icon')
+        },
+        {
+            button: document.getElementById('resources-accordion-btn'),
+            content: document.getElementById('resources-content'),
+            icon: document.getElementById('resources-icon')
+        },
+        {
+            button: document.getElementById('about-accordion-btn'),
+            content: document.getElementById('about-content'),
+            icon: document.getElementById('about-icon')
+        }
+    ];
+    
+    accordions.forEach(acc => {
+        if (acc.button) {
+            acc.button.addEventListener('click', function() {
+                // Toggle current accordion
+                acc.content.classList.toggle('hidden');
+                acc.icon.classList.toggle('rotate-180');
+                
+                // Close other accordions
+                accordions.forEach(other => {
+                    if (other !== acc && other.content && !other.content.classList.contains('hidden')) {
+                        other.content.classList.add('hidden');
+                        other.icon.classList.remove('rotate-180');
+                    }
+                });
+            });
+        }
+    });
+    
+    // Add hover effect to menu items
+    const menuLinks = document.querySelectorAll('#mobile-panel nav a');
+    menuLinks.forEach(link => {
+        if (link.querySelector('div')) {
+            link.addEventListener('mouseenter', function() {
+                this.querySelector('div').classList.add('bg-primary-600');
+                this.querySelector('div').classList.remove('bg-primary-700/50');
+            });
+            
+            link.addEventListener('mouseleave', function() {
+                this.querySelector('div').classList.remove('bg-primary-600');
+                this.querySelector('div').classList.add('bg-primary-700/50');
+            });
+        }
+    });
+});
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

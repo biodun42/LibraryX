@@ -1,0 +1,979 @@
+@model OpenLibraryDetailViewModel
+@{
+    ViewData["Title"] = Model.BookDetails.Title;
+    var bookTitle = Model.BookDetails.Title ?? "Book Details";
+    var isAuthenticated = ViewData["IsAuthenticated"] as bool? == true;
+    var isBookSaved = ViewData["IsBookSaved"] as bool? == true;
+    var isBookDownloaded = ViewData["IsBookDownloaded"] as bool? == true;
+    var savedBookInfo = ViewData["SavedBookInfo"] as LibraryX.Models.SavedBook;
+    var downloadedBookInfo = ViewData["DownloadedBookInfo"] as LibraryX.Models.DownloadedBook;
+}
+
+<!-- Add a skip to main content link for accessibility -->
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-white focus:text-primary-900 focus:z-50">Skip to main content</a>
+
+<!-- Hero Section with Book Cover -->
+<div class="relative bg-gradient-to-r from-primary-900 to-primary-800 overflow-hidden">
+    <div class="absolute inset-0" aria-hidden="true">
+        <svg class="absolute bottom-0 left-0 transform translate-x-80 -translate-y-20 lg:translate-x-20 xl:-translate-y-20" width="404" height="384" fill="none" viewBox="0 0 404 384">
+            <defs>
+                <pattern id="open-library-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <rect x="0" y="0" width="4" height="4" class="text-primary-700" fill="currentColor" />
+                </pattern>
+            </defs>
+            <rect width="404" height="384" fill="url(#open-library-pattern)" />
+        </svg>
+    </div>
+    <div id="main-content" class="relative max-w-7xl mx-auto py-10 px-2 sm:py-24 sm:px-4 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+            <!-- Book Cover with proper alt text -->
+            <div class="flex-shrink-0 rounded-lg bg-white p-3 shadow-xl">
+                <div class="w-32 md:w-48 h-48 md:h-72 relative">
+                    <img src="@(Model.BookDetails.CoverImageUrl ?? "/images/no-cover.png")" 
+                         alt="Book cover for @Model.BookDetails.Title by @(string.Join(", ", Model.BookDetails.Authors ?? new List<string>()))" 
+                         class="w-full h-full object-cover rounded shadow">
+                </div>
+            </div>
+            
+            <!-- Book Information -->
+            <div class="flex items-start flex-col text-center md:text-left">
+                <!-- Back to OpenLibrary link with improved accessibility -->
+                <div class="mb-4">
+                    <a href="@Url.Action("OpenLibrary", new { query = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage, viewMode = Model.ViewMode })" 
+                       class="inline-flex items-center text-primary-300 hover:text-primary-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-primary-800"
+                       aria-label="Return to OpenLibrary Catalog">
+                        <i class="fas fa-arrow-left mr-2" aria-hidden="true"></i>
+                        Back to OpenLibrary Catalog
+                    </a>
+                </div>
+                
+                <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl" tabindex="0">
+                    @bookTitle
+                </h1>
+                
+                @if (Model.BookDetails.Authors != null && Model.BookDetails.Authors.Any())
+                {
+                    <p class="mt-2 text-xl text-primary-200">
+                        by @string.Join(", ", Model.BookDetails.Authors)
+                    </p>
+                }
+                
+                <div class="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
+                    @if (Model.BookDetails.Subjects != null)
+                    {
+                        foreach (var subject in Model.BookDetails.Subjects.Take(3))
+                        {
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium  bg-primary-700/50 backdrop-blur-sm text-white hover:bg-primary-600 transition-colors">
+                                @subject
+                            </span>
+                        }
+                    }
+                </div>
+                
+                <div class="mt-6 flex flex-wrap gap-6 items-center justify-center md:justify-start">
+                    @if (Model.BookDetails.FirstPublishYear.HasValue)
+                    {
+                        <div class="text-primary-200">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Published: @Model.BookDetails.FirstPublishYear
+                        </div>
+                    }
+                    
+                    @if (Model.BookDetails.Pages.HasValue)
+                    {
+                        <div class="text-primary-200">
+                            <i class="fas fa-book mr-2"></i>
+                            @Model.BookDetails.Pages pages
+                        </div>
+                    }
+                    
+                    <div class="text-primary-200">
+                        <i class="fas fa-book-open mr-2"></i>
+                        Open Library Archive
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mt-6 grid grid-cols-2 md:grid-cols-3 gap-2">
+                    @if (isAuthenticated)
+                    {
+                        <a href="@Model.Book.BookUrl" target="_blank" 
+                           class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <i class="fas fa-book-reader mr-2"></i>
+                            View on OpenLibrary
+                        </a>
+                        
+                        <!-- Save Book button -->
+                        @if (isBookSaved)
+                        {
+                            <!-- Already Saved - Show status with animation -->
+                            <div class="group relative">
+                                <div class="flex items-center justify-center px-6 py-3 border border-green-300 text-base font-medium rounded-md shadow-sm text-green-700 bg-green-50">
+                                    <i class="fas fa-check mr-2"></i> Saved to Library
+                                </div>
+                                <!-- Tooltip -->
+                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 w-max invisible group-hover:visible 
+                                     bg-gray-900 text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    Saved on @savedBookInfo.SavedDate.ToString("MMM dd, yyyy")
+                                    <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                            <a href="@Url.Action("Index", "UserLibrary")" 
+                               class="flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                <i class="fas fa-book-open mr-2"></i> View in My Library
+                            </a>
+                        }
+                        else
+                        {
+                            <!-- Save Book Form -->
+                            <form asp-controller="Home" asp-action="SaveBook" method="post" class="inline">
+                                <input type="hidden" name="bookId" value="@Model.Book.Key" />
+                                <input type="hidden" name="title" value="@Model.BookDetails.Title" />
+                                <input type="hidden" name="authors" value="@string.Join(", ", Model.BookDetails.Authors ?? new List<string>())" />
+                                <input type="hidden" name="description" value="@Model.BookDetails.Description" />
+                                <input type="hidden" name="thumbnailUrl" value="@Model.BookDetails.CoverImageUrl" />
+                                <input type="hidden" name="source" value="OpenLibrary" />
+                                <input type="hidden" name="previewLink" value="@Model.Book.BookUrl" />
+                                <input type="hidden" name="publisher" value="@(Model.BookDetails.Publishers != null && Model.BookDetails.Publishers.Any() ? string.Join(", ", Model.BookDetails.Publishers) : "")" />
+                                <input type="hidden" name="pageCount" value="@Model.BookDetails.Pages" />
+                                <input type="hidden" name="publishedYear" value="@Model.BookDetails.FirstPublishYear" />
+                                <input type="hidden" name="isbn" value="@(Model.Book.ISBN != null && Model.Book.ISBN.Any() ? Model.Book.ISBN.FirstOrDefault() : "")" />
+                                <input type="hidden" name="categories" value="@(Model.BookDetails.Subjects != null && Model.BookDetails.Subjects.Any() ? string.Join(", ", Model.BookDetails.Subjects.Take(5)) : "")" />
+                                <input type="hidden" name="bookUrl" value="@Model.Book.BookUrl" />
+                                <input type="hidden" name="language" value="@(Model.Book.Language != null && Model.Book.Language.Any() ? Model.Book.Language.FirstOrDefault() : Model.BookDetails.Language)" />
+                                <input type="hidden" name="averageRating" value="@Model.Book.AverageRating" />
+                                <input type="hidden" name="ratingsCount" value="@Model.Book.RatingsCount" />
+                                <button type="submit" class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-primary-900 bg-primary-300 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-300">
+                                    <i class="fas fa-bookmark mr-2"></i>
+                                    Save Book
+                                </button>
+                            </form>
+                        }
+                        
+                        <!-- Download Book button (if ebooks are available) -->
+                        @if (!string.IsNullOrEmpty(Model.Book.EbookAccess) && Model.Book.EbookAccess != "no_ebook")
+                        {
+                            @if (isBookDownloaded)
+                            {
+                                <!-- Already Downloaded - Show status with animation -->
+                                <div class="group relative">
+                                    <div class="flex items-center justify-center px-6 py-3 border border-blue-300 text-base font-medium rounded-md shadow-sm text-blue-700 bg-blue-50">
+                                        <i class="fas fa-check-circle mr-2"></i> Downloaded
+                                    </div>
+                                    <!-- Tooltip -->
+                                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 w-max invisible group-hover:visible 
+                                          bg-gray-900 text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        Downloaded @downloadedBookInfo.Format on @downloadedBookInfo.DownloadDate.ToString("MMM dd, yyyy")
+                                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("Index", "UserLibrary")" 
+                                    class="flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <i class="fas fa-folder-open mr-2"></i> View in Downloads
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="relative inline-block" id="download-dropdown-container">
+                                    <button type="button" onclick="toggleDropdown()" id="download-button" class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-accent-600 hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500">
+                                        <i class="fas fa-download mr-2"></i>
+                                        Download
+                                        <i class="fas fa-chevron-down ml-2"></i>
+                                    </button>
+                                    <div id="format-dropdown" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                            <form asp-controller="Home" asp-action="DownloadBook" method="post" class="download-form" data-format="PDF">
+                                                <input type="hidden" name="bookId" value="@Model.Book.Key" />
+                                                <input type="hidden" name="title" value="@Model.BookDetails.Title" />
+                                                <input type="hidden" name="authors" value="@string.Join(", ", Model.BookDetails.Authors ?? new List<string>())" />
+                                                <input type="hidden" name="coverImageUrl" value="@Model.BookDetails.CoverImageUrl" />
+                                                <input type="hidden" name="format" value="PDF" />
+                                                <input type="hidden" name="sourceType" value="OpenLibrary" />
+                                                <input type="hidden" name="bookUrl" value="@Model.Book.BookUrl" />
+                                                <input type="hidden" name="returnUrl" value="@Url.Action("OpenLibraryDetail", new { id = Model.Book.Key, query = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage, viewMode = Model.ViewMode })" />
+                                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                    <i class="fas fa-file-pdf mr-2"></i> PDF Format
+                                                </button>
+                                            </form>
+                                            
+                                            <form asp-controller="Home" asp-action="DownloadBook" method="post" class="download-form" data-format="EPUB">
+                                                <input type="hidden" name="bookId" value="@Model.Book.Key" />
+                                                <input type="hidden" name="title" value="@Model.BookDetails.Title" />
+                                                <input type="hidden" name="authors" value="@string.Join(", ", Model.BookDetails.Authors ?? new List<string>())" />
+                                                <input type="hidden" name="coverImageUrl" value="@Model.BookDetails.CoverImageUrl" />
+                                                <input type="hidden" name="format" value="EPUB" />
+                                                <input type="hidden" name="sourceType" value="OpenLibrary" />
+                                                <input type="hidden" name="bookUrl" value="@Model.Book.BookUrl" />
+                                                <input type="hidden" name="returnUrl" value="@Url.Action("OpenLibraryDetail", new { id = Model.Book.Key, query = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage, viewMode = Model.ViewMode })" />
+                                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                    <i class="fas fa-tablet-alt mr-2"></i> EPUB Format
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account", new { area = "Identity", returnUrl = Url.Action("OpenLibraryDetail", new { id = Model.Book.Key, query = Model.SearchQuery, category = Model.SelectedCategory, page = Model.CurrentPage, viewMode = Model.ViewMode }) })" 
+                           class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Sign in to access
+                        </a>
+                    }
+                </div>
+                
+                <!-- Advanced Download Status Modal -->                <div id="download-status-modal" class="fixed inset-0 items-center justify-center z-50 hidden" style="display: none;">
+                    <!-- Backdrop with blur effect -->
+                    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="download-modal-backdrop"></div>
+                    
+                    <!-- Modal content with glass morphism effect -->
+                    <div class="relative bg-white/90 backdrop-blur-md rounded-xl shadow-2xl w-full max-w-md p-6 border border-white/20 transform transition-all overflow-hidden duration-300 scale-95 opacity-0" id="download-modal-content">
+                        <!-- Book info header -->
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 h-16 w-12 bg-gray-100 rounded overflow-hidden shadow-sm mr-3">
+                                <img src="@(Model.BookDetails.CoverImageUrl ?? "/images/no-cover.png")" 
+                                     alt="Book cover" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900 line-clamp-1">@Model.BookDetails.Title</h3>
+                                <p class="text-sm text-gray-600 line-clamp-1">@string.Join(", ", Model.BookDetails.Authors ?? new List<string>())</p>
+                            </div>
+                            <button type="button" class="ml-auto text-gray-400 hover:text-gray-500 focus:outline-none" id="close-download-modal">
+                                <span class="sr-only">Close</span>
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Download status content -->
+                        <div class="py-4">
+                            <!-- Initial state - Loading -->
+                            <div id="download-progress" class="flex flex-col items-center">
+                                <div class="relative w-20 h-20 mb-4">
+                                    <!-- Circular progress -->
+                                    <svg class="w-full h-full" viewBox="0 0 100 100">
+                                        <circle class="text-gray-200" stroke-width="8" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50" />
+                                        <circle id="progress-circle" class="text-accent-600 progress-circle" stroke-width="8" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50" 
+                                                stroke-dasharray="264" stroke-dashoffset="264" />
+                                    </svg>
+                                    <!-- File type icon in center -->
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span id="download-format-icon"><i class="fas fa-file-pdf text-accent-600 text-xl"></i></span>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="text-lg font-medium text-gray-900 mb-2">Downloading <span id="download-format-name">PDF</span></h4>
+                                <p class="text-sm text-gray-500 mb-4">Please wait while we prepare your download...</p>
+                                
+                                <!-- Linear progress bar (backup) -->
+                                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div id="download-progress-bar" class="h-full bg-accent-600 rounded-full" style="width: 0%"></div>
+                                </div>
+                                
+                                <!-- Download stats -->
+                                <div class="flex justify-between w-full text-xs text-gray-500 mt-2">
+                                    <span id="download-progress-percent">0%</span>
+                                    <span id="download-progress-size">0 KB / 0 MB</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Success state -->                            <div id="download-success" class="flex-col items-center hidden" style="display: none;">
+                                <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                                    <i class="fas fa-check text-3xl text-green-600"></i>
+                                </div>
+                                <h4 class="text-lg font-medium text-gray-900 mb-2">Download Complete</h4>
+                                <p class="text-sm text-gray-500 mb-6">Your download has been successfully completed.</p>
+                                <div class="flex gap-3">
+                                    <a href="@Url.Action("Index", "UserLibrary")" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                                        View in Downloads
+                                    </a>
+                                    <button type="button" id="close-success-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Error state -->
+                            <div id="download-error" class="flex flex-col items-center hidden">
+                                <div class="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                                    <i class="fas fa-exclamation-triangle text-3xl text-red-600"></i>
+                                </div>
+                                <h4 class="text-lg font-medium text-gray-900 mb-2">Download Failed</h4>
+                                <p class="text-sm text-gray-500 mb-6">We encountered a problem while downloading your book.</p>
+                                <div class="flex gap-3">
+                                    <button type="button" id="retry-download-btn" class="px-4 py-2 bg-accent-600 text-white rounded-md hover:bg-accent-700 transition-colors">
+                                        Try Again
+                                    </button>
+                                    <button type="button" id="close-error-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Book Details Content -->
+<div class="bg-white py-6 sm:py-12">
+    <div class="max-w-9xl mx-auto px-2 sm:px-4 lg:px-8">
+        @if (!isAuthenticated)
+        {
+            <!-- Premium Authentication Required Modal -->
+            <div class="mb-10 p-8 rounded-2xl bg-gradient-to-br from-primary-50 to-white relative border border-primary-100 shadow-lg overflow-hidden">
+                <!-- Visual elements -->
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary-100 rounded-full opacity-50 blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 -mb-4 -ml-10 w-40 h-40 bg-primary-200"> rounded-full opacity-30 blur-3xl"></div>
+                
+                <div class="relative flex flex-col md:flex-row items-center gap-8">
+                    <!-- Animated lock icon -->
+                    <div class="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-primary-100 to-primary-50 rounded-full flex items-center justify-center shadow-inner group">
+                        <div class="relative w-16 h-16 md:w-20 md:h-20">
+                            <!-- Lock body -->
+                            <div class="absolute inset-0 flex justify-center items-end">
+                                <div class="w-12 md:w-14 h-10 md:h-12 bg-primary-600 rounded-lg"></div>
+                            </div>
+                            <!-- Lock shackle -->
+                            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 md:w-10 h-8 md:h-10 border-4 border-primary-600 rounded-t-full"></div>
+                            <!-- Keyhole -->
+                            <div class="absolute bottom-4 md:bottom-5 left-1/2 transform -translate-x-1/2 w-2 h-3 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">Preview Access Requires Sign In</span>
+                        </h3>
+                        <p class="text-gray-700 mb-6 max-w-2xl">Our exclusive book preview feature is available only to signed-in members. Create a free account to gain immediate access to previews of all books in our extensive library collection.</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            <a asp-area="Identity" asp-page="/Account/Login" 
+                               class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                                <i class="fas fa-sign-in-alt mr-2"></i>
+                                Sign In
+                            </a>
+                            
+                            <a asp-area="Identity" asp-page="/Account/Register" 
+                               class="inline-flex items-center justify-center px-5 py-3 border border-primary-200"> text-base font-medium rounded-md text-primary-700 bg-white hover:bg-primary-50">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Create Account
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member benefits showcase -->
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h4 class="font-medium">Full Preview Access</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Read sample chapters before borrowing or purchasing any book in our collection.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h4 class="font-medium">Advanced Search</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Access advanced search features to find exactly the books you need.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <h4 class="font-medium">New Release Alerts</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Get notifications when new books in your favorite genres become available.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-primary-100 transform transition hover:scale-105">
+                        <div class="flex items-center mb-2">
+                            <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h4 class="font-medium">Reading History</h4>
+                        </div>
+                        <p class="text-sm text-gray-600">Track your reading history and get personalized recommendations.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Blurred/Protected Content -->
+            <div class="relative mb-12">
+                <!-- Content protection overlay with glassy effect -->
+                <div class="absolute inset-0 bg-white/80 backdrop-blur-md z-10 flex flex-col items-center justify-center rounded-xl overflow-hidden">
+                    <!-- Stylized lock icon with animation -->
+                    <div class="relative h-24 w-24 mb-6">
+                        <div class="absolute inset-0 bg-primary-600 rounded-full opacity-10 animate-ping"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-lock text-primary-600 text-4xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Message -->
+                    <div class="text-center max-w-md px-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Content Preview Protected</h3>
+                        <p class="text-gray-600 mb-6">Create a free account or sign in to preview book details, descriptions, and sample content.</p>
+                        
+                        <div class="inline-flex rounded-md shadow">
+                            <a asp-area="Identity" asp-page="/Account/Login" 
+                               class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                                Sign In to Continue
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Blurred content -->
+                <div class="filter blur-sm opacity-30">
+                    <div class="h-96 lg:h-[32rem] bg-gray-100 rounded-xl flex items-center justify-center">
+                        <div class="w-full p-6 lg:p-12 max-w-3xl mx-auto">
+                            <div class="h-6 bg-gray-300 rounded mb-6 w-3/4"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-3 w-full"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-3 w-5/6"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-3 w-full"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-6 w-3/4"></div>
+                            
+                            <div class="h-6 bg-gray-300 rounded mb-6 w-2/4"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-3 w-full"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-3 w-5/6"></div>
+                            <div class="h-4 bg-gray-300 rounded mb-3 w-4/5"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Full Book Content for Authenticated Users -->
+            <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+                <!-- Main Content -->
+                <div class="lg:col-span-8">
+                    <!-- Description -->
+                    <section>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Description</h2>
+                        <div class="prose prose-primary max-w-none">
+                            @if (!string.IsNullOrEmpty(Model.BookDetails.Description) && Model.BookDetails.Description != "No description available")
+                            {
+                                <p>@Model.BookDetails.Description</p>
+                            }
+                            else
+                            {
+                                <p class="text-gray-500">No description available for this book.</p>
+                            }
+                        </div>
+                    </section>
+                    
+                    <!-- Book Details -->
+                    <section class="mt-12">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Book Details</h2>
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                @if (Model.BookDetails.FirstPublishYear.HasValue)
+                                {
+                                    <div>
+                                        <h3 class="text-sm font-medium text-gray-500">First Published</h3>
+                                        <p class="mt-1 text-base text-gray-900">@Model.BookDetails.FirstPublishYear</p>
+                                    </div>
+                                }
+                                
+                                @if (Model.BookDetails.Pages.HasValue)
+                                {
+                                    <div>
+                                        <h3 class="text-sm font-medium text-gray-500">Pages</h3>
+                                        <p class="mt-1 text-base text-gray-900">@Model.BookDetails.Pages</p>
+                                    </div>
+                                }
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500">Language</h3>
+                                    <p class="mt-1 text-base text-gray-900">@(Model.BookDetails.Language ?? "Unknown")</p>
+                                </div>
+                                
+                                @if (Model.BookDetails.Publishers != null && Model.BookDetails.Publishers.Any())
+                                {
+                                    <div>
+                                        <h3 class="text-sm font-medium text-gray-500">Publisher</h3>
+                                        <p class="mt-1 text-base text-gray-900">@string.Join(", ", Model.BookDetails.Publishers)</p>
+                                    </div>
+                                }
+                                
+                                @if (Model.BookDetails.EbookAccess != null)
+                                {
+                                    <div>
+                                        <h3 class="text-sm font-medium text-gray-500">E-Book Access</h3>
+                                        <p class="mt-1 text-base text-gray-900">
+                                            @if (Model.BookDetails.EbookAccess == "borrowable")
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-check-circle mr-1"></i> Available to Borrow
+                                                </span>
+                                            }
+                                            else if (Model.BookDetails.EbookAccess == "public")
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-globe mr-1"></i> Public Domain
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                                    <i class="fas fa-lock mr-1"></i> Limited Access
+                                                </span>
+                                            }
+                                        </p>
+                                    </div>
+                                }
+                                
+                                @if (Model.Book.ISBN != null && Model.Book.ISBN.Any())
+                                {
+                                    <div>
+                                        <h3 class="text-sm font-medium text-gray-500">ISBN</h3>
+                                        <p class="mt-1 text-base text-gray-900">@Model.Book.ISBN.FirstOrDefault()</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Subjects -->
+                    <section class="mt-12">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Subjects</h2>
+                        <div class="flex flex-wrap gap-2">
+                            @if (Model.BookDetails.Subjects != null && Model.BookDetails.Subjects.Any())
+                            {
+                                foreach (var subject in Model.BookDetails.Subjects)
+                                {
+                                    <a href="@Url.Action("OpenLibrary", new { category = subject, viewMode = Model.ViewMode })" 
+                                       class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-primary-100 text-primary-800 hover:bg-primary-200"> transition-colors">
+                                        @subject
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-gray-500">No subjects available for this book.</p>
+                            }
+                        </div>
+                    </section>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="lg:col-span-4 mt-12 lg:mt-0">
+                    <!-- Preview Button Section -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="font-medium text-gray-900">Read Online</h3>
+                        </div>
+                        <div class="p-5 flex flex-col items-center">
+                            <a href="@Model.Book.BookUrl" target="_blank" 
+                               class="w-full mb-3 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                <i class="fas fa-book-reader mr-2"></i>
+                                View on OpenLibrary
+                            </a>
+                            
+                            @if (!string.IsNullOrEmpty(Model.BookDetails.EbookAccess) && Model.BookDetails.EbookAccess != "no_ebook")
+                            {
+                                <a href="https://openlibrary.org/borrow/ia/@Model.Book.Key.Replace("/works/", "")" target="_blank" 
+                                   class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Borrow eBook
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Related Books -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="font-medium text-gray-900">Related Books</h3>
+                        </div>
+                        <div class="p-5">
+                            @if (Model.RelatedBooks.Any())
+                            {
+                                <div class="space-y-4">
+                                    @foreach (var relatedBook in Model.RelatedBooks.Take(4))
+                                    {
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0 w-12 h-16 bg-gray-200 rounded overflow-hidden">
+                                                <img src="@relatedBook.SmallCoverUrl" alt="@relatedBook.Title" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="ml-3">
+                                                <h4 class="text-sm font-medium text-gray-900 line-clamp-2">
+                                                    <a href="@Url.Action("OpenLibraryDetail", new { key = relatedBook.Key.Replace("/works/", ""), viewMode = Model.ViewMode })" class="hover:underline">
+                                                        @relatedBook.Title
+                                                    </a>
+                                                </h4>
+                                                <p class="mt-1 text-xs text-gray-500 line-clamp-1">
+                                                    @relatedBook.AuthorsText
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-sm text-gray-500">No related books available.</p>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Help Box -->
+                    <div class="mt-8 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary-200 flex items-center justify-center">
+                                <i class="fas fa-info-circle text-primary-600"></i>
+                            </div>
+                            <h3 class="ml-3 text-lg font-medium text-gray-900">About OpenLibrary</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">
+                            OpenLibrary is an open, editable library catalog, building towards a web page for every book ever published.
+                        </p>
+                        <a href="https://openlibrary.org/about" target="_blank" class="text-primary-600 hover:text-primary-800 font-medium flex items-center">
+                            Learn more about OpenLibrary
+                            <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Recommended Books (Visible to all users) -->
+        <div class="mt-20">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Recommended Books</h2>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                @if (Model.RecommendedBooks?.Any() == true)
+                {
+                    @foreach (var book in Model.RecommendedBooks.Take(4))
+                    {
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="relative pt-[70%]">
+                                <img src="@book.CoverUrl" alt="@book.Title" class="absolute inset-0 h-full w-full object-cover">
+                            </div>
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-gray-900 line-clamp-2">
+                                    <a href="@Url.Action("OpenLibraryDetail", new { key = book.Key.Replace("/works/", ""), viewMode = Model.ViewMode })" class="hover:text-primary-600">
+                                        @book.Title
+                                    </a>
+                                </h3>
+                                <p class="mt-1 text-sm text-gray-500 line-clamp-1">@book.AuthorsText</p>
+                                <div class="mt-3 flex justify-between items-end">
+                                    @if (book.FirstPublishYear.HasValue)
+                                    {
+                                        <span class="text-xs text-gray-500">@book.FirstPublishYear</span>
+                                    }
+                                    <a href="@Url.Action("OpenLibraryDetail", new { key = book.Key.Replace("/works/", ""), viewMode = Model.ViewMode })" class="text-sm font-medium text-primary-600 hover:text-primary-800">
+                                        Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-span-full text-center py-10">
+                        <p class="text-gray-500">No recommended books available at this time.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OpenLibrary Feature Callout -->
+<section class="bg-gradient-to-r from-primary-800 to-primary-700 py-16">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div class="lg:flex lg:items-center lg:justify-between">
+            <div class="lg:max-w-xl">
+                <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                    Explore millions of free books
+                </h2>
+                <p class="mt-3 text-lg text-primary-200">
+                    OpenLibrary is a project of the Internet Archive, building a digital library of Internet sites and cultural artifacts in digital form.
+                </p>
+                <div class="mt-8">
+                    <a href="https://openlibrary.org" target="_blank" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-primary-900 bg-white hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-800 focus:ring-white">
+                        Visit OpenLibrary
+                    </a>
+                </div>
+            </div>
+            <div class="mt-10 lg:mt-0 lg:ml-16 lg:flex-shrink-0">
+                <div class="relative w-full">
+                    <svg class="absolute top-0 left-0 transform -translate-x-8 -translate-y-24 h-36 w-36 text-primary-200"> opacity-25" viewBox="0 0 184 184" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M182 184a2 2 0 110-4 2 2 0 010 4zm-20-20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm-20 0a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm-20 0a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm-20 0a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm-20 0a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm-20 0a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm0-20a2 2 0 110-4 2 2 0 010 4zm-20 0a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm-20-80a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm-20-80a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4zm0 20a2 2 0 110-4 2 2 0 010 4z" fill="currentColor" />
+                    </svg>
+                    <div class="bg-white rounded-lg shadow-lg p-6 relative z-10">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-primary-600 rounded-full p-2">
+                                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                            <span class="text-xl font-bold text-primary-900">OpenLibrary Stats</span>
+                        </div>
+                        <dl class="mt-6 space-y-6">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Books</dt>
+                                <dd class="mt-1 text-2xl font-bold text-primary-600">30+ Million</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">eBooks Available</dt>
+                                <dd class="mt-1 text-2xl font-bold text-primary-600">3+ Million</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Contributors</dt>
+                                <dd class="mt-1 text-2xl font-bold text-primary-600">Thousands</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('format-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('download-dropdown-container');
+            const dropdown = document.getElementById('format-dropdown');
+            
+            if (container && dropdown && !container.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+        
+        // Enhanced download functionality with status display
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadForms = document.querySelectorAll('.download-form');
+            const downloadProgress = document.getElementById('download-progress');
+            const downloadSuccess = document.getElementById('download-success');
+            const downloadError = document.getElementById('download-error');
+            const progressBar = document.querySelector('.progress-bar');
+            const downloadFormatSpan = document.getElementById('download-format');
+            const retryButton = document.getElementById('retry-download');
+            
+            let lastAttemptedFormat = null;
+            let lastAttemptedForm = null;
+            
+            // Add click handlers to download buttons
+            downloadForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const format = this.querySelector('input[name="format"]').value;
+                    lastAttemptedFormat = format;
+                    lastAttemptedForm = this;
+                    
+                    // Update download status display
+                    if (downloadFormatSpan) {
+                        downloadFormatSpan.textContent = format;
+                    }
+                    
+                    // Hide other messages and show progress
+                    if (downloadSuccess) downloadSuccess.classList.add('hidden');
+                    if (downloadError) downloadError.classList.add('hidden');
+                    if (downloadProgress) {
+                        downloadProgress.classList.remove('hidden');
+                        
+                        // Animate progress bar
+                        if (progressBar) {
+                            progressBar.style.width = '0%';
+                            animateProgressBar();
+                        }
+                    }
+                    
+                    // Submit form after a delay to simulate download process
+                    setTimeout(() => {
+                        try {
+                            this.submit();
+                            
+                            // Show success message after a short delay
+                            setTimeout(() => {
+                                if (downloadProgress) downloadProgress.classList.add('hidden');
+                                if (downloadSuccess) downloadSuccess.classList.remove('hidden');
+                            }, 1500);
+                        } catch (error) {
+                            console.error('Download error:', error);
+                            handleDownloadError();
+                        }
+                    }, 2000); // Simulate 2 second download
+                });
+            });
+            
+            // Retry download button
+            if (retryButton) {
+                retryButton.addEventListener('click', function() {
+                    if (lastAttemptedForm) {
+                        // Hide error and submit the form again
+                        downloadError.classList.add('hidden');
+                        
+                        // Get the format from the last attempted form
+                        const format = lastAttemptedForm.querySelector('input[name="format"]').value;
+                        
+                        // Update the download format span
+                        if (downloadFormatSpan) {
+                            downloadFormatSpan.textContent = format;
+                        }
+                        
+                        // Show progress again
+                        if (downloadProgress) {
+                            downloadProgress.classList.remove('hidden');
+                            
+                            // Animate progress bar
+                            if (progressBar) {
+                                progressBar.style.width = '0%';
+                                animateProgressBar();
+                            }
+                        }
+                        
+                        // Submit form after a delay
+                        setTimeout(() => {
+                            try {
+                                lastAttemptedForm.submit();
+                                
+                                // Show success after a delay
+                                setTimeout(() => {
+                                    if (downloadProgress) downloadProgress.classList.add('hidden');
+                                    if (downloadSuccess) downloadSuccess.classList.remove('hidden');
+                                }, 1500);
+                            } catch (error) {
+                                console.error('Download retry error:', error);
+                                handleDownloadError();
+                            }
+                        }, 1000);
+                    }
+                });
+            }
+            
+            // Handle download error
+            function handleDownloadError() {
+                if (downloadProgress) downloadProgress.classList.add('hidden');
+                if (downloadError) downloadError.classList.remove('hidden');
+            }
+            
+            // Animate progress bar
+            function animateProgressBar() {
+                if (!progressBar) return;
+                
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                    } else {
+                        width += 5;
+                        progressBar.style.width = width + '%';
+                    }
+                }, 100);
+            }
+        });
+        
+        // Download status modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadButton = document.getElementById('download-button');
+            const downloadModal = document.getElementById('download-status-modal');
+            const closeDownloadModal = document.getElementById('close-download-modal');
+            const downloadModalBackdrop = document.getElementById('download-modal-backdrop');
+            const downloadFormatName = document.getElementById('download-format-name');
+            const downloadFormatIcon = document.getElementById('download-format-icon');
+            const downloadProgressPercent = document.getElementById('download-progress-percent');
+            const downloadProgressSize = document.getElementById('download-progress-size');
+            const downloadProgressBar = document.getElementById('download-progress-bar');
+            
+            // Open modal on download button click
+            if (downloadButton) {
+                downloadButton.addEventListener('click', function() {
+                    const format = this.getAttribute('data-format');
+                    openDownloadModal(format);
+                });
+            }
+            
+            // Close modal functionality
+            if (closeDownloadModal) {
+                closeDownloadModal.addEventListener('click', function() {
+                    closeDownloadModal();
+                });
+            }
+            
+            if (downloadModalBackdrop) {
+                downloadModalBackdrop.addEventListener('click', function() {
+                    closeDownloadModal();
+                });
+            }
+            
+            // Open download status modal
+            function openDownloadModal(format) {
+                downloadFormatName.textContent = format;
+                downloadFormatIcon.innerHTML = format === 'PDF' ? '<i class="fas fa-file-pdf text-accent-600 text-xl"></i>' : '<i class="fas fa-tablet-alt text-accent-600 text-xl"></i>';
+                
+                downloadModal.classList.remove('hidden');
+                setTimeout(() => {
+                    downloadModal.classList.remove('scale-95', 'opacity-0');
+                    downloadModal.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+            
+            // Close download status modal
+            function closeDownloadModal() {
+                downloadModal.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    downloadModal.classList.add('hidden');
+                    downloadModal.classList.remove('scale-100', 'opacity-100');
+                }, 300);
+            }
+            
+            // Simulate download progress (for demo purposes)
+            function simulateDownloadProgress() {
+                const totalSize = Math.floor(Math.random() * 5000) + 1000; // Random size between 1000 and 6000 KB
+                let downloaded = 0;
+                
+                downloadProgress.classList.remove('hidden');
+                downloadSuccess.classList.add('hidden');
+                downloadError.classList.add('hidden');
+                
+                const interval = setInterval(() => {
+                    const chunk = Math.floor(Math.random() * 500) + 100; // Random chunk between 100 and 600 KB
+                    downloaded += chunk;
+                    
+                    if (downloaded >= totalSize) {
+                        downloaded = totalSize;
+                        clearInterval(interval);
+                        
+                        // Show success message
+                        downloadProgress.classList.add('hidden');
+                        downloadSuccess.classList.remove('hidden');
+                        downloadError.classList.add('hidden');
+                    }
+                    
+                    // Update progress text and bar
+                    downloadProgressPercent.textContent = Math.round((downloaded / totalSize) * 100) + '%';
+                    downloadProgressSize.textContent = Math.round(downloaded / 1024) + ' MB / ' + Math.round(totalSize / 1024) + ' MB';
+                    downloadProgressBar.style.width = (downloaded / totalSize) * 100 + '%';
+                }, 500);
+            }
+        });
+    </script>
+}
