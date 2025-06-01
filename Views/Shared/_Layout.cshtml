@@ -84,6 +84,35 @@
     </script>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50 font-sans antialiased">
+
+<!-- Page Preloader -->
+<div id="page-loading-screen" class="fixed inset-0 z-[9999] bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center transition-all duration-500 ease-in-out">
+    <div class="text-center">
+        <!-- Mini Spinner for page transitions -->
+        <div class="relative mb-6">
+            <div class="h-16 w-16 mx-auto">
+                <div class="absolute inset-0 rounded-full border-4 border-primary-400/30"></div>
+                @* <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-400 border-r-primary-400 animate-spin"></div> *@
+                <div class="absolute inset-2 bg-gradient-to-br from-primary-400 to-primary-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-book-reader text-lg animate-pulse"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            <h2 class="text-xl font-bold text-white">Loading...</h2>
+            <p class="text-primary-200 text-sm" id="page-loading-message">Please wait</p>
+        </div>
+        
+        <!-- Progress dots -->
+        <div class="flex justify-center space-x-2 mt-4">
+            <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+            <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+            <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+        </div>
+    </div>
+</div>
+
 <!-- Advanced Navigation Bar Design -->
 <header id="main-header" class="fixed w-full top-0 z-50 transition-all duration-500">
     <div class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900 shadow-xl backdrop-blur-md bg-opacity-90">
@@ -700,6 +729,51 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Preloader functionality
+    const loadingScreen = document.getElementById('page-loading-screen');
+    const loadingMessage = document.getElementById('page-loading-message');
+    
+    // Array of loading messages
+    const loadingMessages = [
+        'Please wait...',
+        'Loading content...',
+        'Preparing your experience...',
+        'Almost ready...',
+        'Setting up your library...'
+    ];
+    
+    let messageIndex = 0;
+    
+    // Change loading message every 800ms
+    const messageInterval = setInterval(() => {
+        messageIndex = (messageIndex + 1) % loadingMessages.length;
+        loadingMessage.textContent = loadingMessages[messageIndex];
+    }, 800);
+    
+    // Hide preloader when page is fully loaded
+    window.addEventListener('load', function() {
+        clearInterval(messageInterval);
+        setTimeout(() => {
+            loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+            
+            // Remove the element after animation completes
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 500);
+        }, 100); // Small delay to ensure everything is loaded
+    });
+    
+    // Fallback: Hide preloader after maximum 5 seconds
+    setTimeout(() => {
+        if (loadingScreen && !loadingScreen.classList.contains('opacity-0')) {
+            clearInterval(messageInterval);
+            loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 500);
+        }
+    }, 5000);
+    
     // Elements
     const mobileMenu = document.getElementById('mobile-menu');
     const mobilePanel = document.getElementById('mobile-panel');
