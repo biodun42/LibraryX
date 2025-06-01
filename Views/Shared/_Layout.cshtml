@@ -82,17 +82,32 @@
             }
         }
     </script>
+    <style>
+        * {
+            scrollbar-width: none; 
+        }
+    </style>
+        
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50 font-sans antialiased">
 
 <!-- Page Preloader -->
 <div id="page-loading-screen" class="fixed inset-0 z-[9999] bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center transition-all duration-500 ease-in-out">
     <div class="text-center">
-        <!-- Mini Spinner for page transitions -->
-        <div class="relative mb-6">
+        <!-- Enhanced Spinner for Index Page -->
+        <div class="relative mb-6" id="main-spinner">
             <div class="h-16 w-16 mx-auto">
                 <div class="absolute inset-0 rounded-full border-4 border-primary-400/30"></div>
-                @* <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-400 border-r-primary-400 animate-spin"></div> *@
+                <div class="absolute inset-2 bg-gradient-to-br from-primary-400 to-primary-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-book-reader text-lg animate-pulse"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Simple Spinner for Other Pages -->
+        <div class="relative mb-6 hidden" id="simple-spinner">
+<div class="h-16 w-16 mx-auto">
+                <div class="absolute inset-0 rounded-full border-4 border-primary-400/30"></div>
                 <div class="absolute inset-2 bg-gradient-to-br from-primary-400 to-primary-600 text-white rounded-full flex items-center justify-center shadow-lg">
                     <i class="fas fa-book-reader text-lg animate-pulse"></i>
                 </div>
@@ -100,12 +115,12 @@
         </div>
         
         <div class="space-y-2">
-            <h2 class="text-xl font-bold text-white">Loading...</h2>
+            <h2 class="text-xl font-bold text-white" id="loading-title">Loading...</h2>
             <p class="text-primary-200 text-sm" id="page-loading-message">Please wait</p>
         </div>
         
-        <!-- Progress dots -->
-        <div class="flex justify-center space-x-2 mt-4">
+        <!-- Progress dots (only for index page) -->
+        <div class="flex justify-center space-x-2 mt-4" id="progress-dots">
             <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
             <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
             <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
@@ -729,51 +744,180 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Preloader functionality
+    // Enhanced Preloader functionality
     const loadingScreen = document.getElementById('page-loading-screen');
     const loadingMessage = document.getElementById('page-loading-message');
+    const loadingTitle = document.getElementById('loading-title');
+    const mainSpinner = document.getElementById('main-spinner');
+    const simpleSpinner = document.getElementById('simple-spinner');
+    const progressDots = document.getElementById('progress-dots');
     
-    // Array of loading messages
+    // Detect if we're on the index page
+    const isIndexPage = window.location.pathname === '/' || 
+                       window.location.pathname === '/Home' || 
+                       window.location.pathname === '/Home/Index' ||
+                       window.location.pathname.toLowerCase().includes('home/index');
+    
+    // Array of loading messages with progression (for index page only)
     const loadingMessages = [
-        'Please wait...',
-        'Loading content...',
-        'Preparing your experience...',
-        'Almost ready...',
-        'Setting up your library...'
+        { text: 'Initializing LibraryX...', duration: 200 },
+        { text: 'Loading your digital library...', duration: 200 },
+        { text: 'Preparing book catalogs...', duration: 200 },
+        { text: 'Setting up your workspace...', duration: 200 },
+        { text: 'Almost ready...', duration: 200 },
+        { text: 'Welcome to LibraryX!', duration: 200 }
     ];
     
     let messageIndex = 0;
+    let messageTimeout;
     
-    // Change loading message every 800ms
-    const messageInterval = setInterval(() => {
-        messageIndex = (messageIndex + 1) % loadingMessages.length;
-        loadingMessage.textContent = loadingMessages[messageIndex];
-    }, 800);
-    
-    // Hide preloader when page is fully loaded
-    window.addEventListener('load', function() {
-        clearInterval(messageInterval);
-        setTimeout(() => {
-            loadingScreen.classList.add('opacity-0', 'pointer-events-none');
-            
-            // Remove the element after animation completes
-            setTimeout(() => {
-                loadingScreen.remove();
-            }, 500);
-        }, 100); // Small delay to ensure everything is loaded
-    });
-    
-    // Fallback: Hide preloader after maximum 5 seconds
-    setTimeout(() => {
-        if (loadingScreen && !loadingScreen.classList.contains('opacity-0')) {
-            clearInterval(messageInterval);
-            loadingScreen.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                loadingScreen.remove();
-            }, 500);
+    // Configure preloader based on page type
+    if (isIndexPage) {
+        // Full experience for index page
+        loadingTitle.textContent = 'Welcome to LibraryX';
+        mainSpinner.classList.remove('hidden');
+        simpleSpinner.classList.add('hidden');
+        progressDots.classList.remove('hidden');
+        
+        // Function to show next message
+        function showNextMessage() {
+            if (messageIndex < loadingMessages.length) {
+                const currentMessage = loadingMessages[messageIndex];
+                
+                // Fade out current message
+                loadingMessage.style.opacity = '0';
+                loadingMessage.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    // Update text and fade in
+                    loadingMessage.textContent = currentMessage.text;
+                    loadingMessage.style.opacity = '1';
+                    loadingMessage.style.transform = 'translateY(0)';
+                    
+                    messageIndex++;
+                    
+                    // Schedule next message
+                    if (messageIndex < loadingMessages.length) {
+                        messageTimeout = setTimeout(showNextMessage, currentMessage.duration);
+                    } else {
+                        // All messages shown, wait a bit then hide preloader
+                        setTimeout(hidePreloader, 500);
+                    }
+                }, 200);
+            }
         }
-    }, 5000);
+        
+        // Start the message progression immediately for index page
+        showNextMessage();
+        
+        // Enhanced loading message transition styles
+        loadingMessage.style.transition = 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        
+        // Add breathing animation to the main spinner
+        const mainSpinnerIcon = mainSpinner.querySelector('.absolute.inset-2');
+        if (mainSpinnerIcon) {
+            mainSpinnerIcon.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, rotate 3s linear infinite';
+        }
+        
+        // Add subtle floating animation to progress dots
+        const dots = progressDots.querySelectorAll('.animate-bounce');
+        dots.forEach((dot, index) => {
+            dot.style.animationDelay = `${index * 150}ms`;
+            dot.style.animationDuration = '1s';
+        });
+        
+        // Minimum show time for index page
+        var minimumShowTime = 3500;
+        
+    } else {
+        // Simple loading state for other pages
+        loadingTitle.textContent = 'Loading';
+        loadingMessage.textContent = 'Please wait...';
+        mainSpinner.classList.add('hidden');
+        simpleSpinner.classList.remove('hidden');
+        progressDots.classList.add('hidden');
+        
+        // Shorter duration for other pages
+        var minimumShowTime = 200;
+        
+        // Hide preloader after short delay for other pages
+        setTimeout(hidePreloader, minimumShowTime);
+    }
     
+    // Function to hide preloader with smooth animation
+    function hidePreloader() {
+        // Clear any pending timeouts
+        if (messageTimeout) {
+            clearTimeout(messageTimeout);
+        }
+        
+        // Add exit animations
+        const activeSpinner = isIndexPage ? mainSpinner.querySelector('.h-16') : simpleSpinner.querySelector('.h-12');
+        const textContainer = loadingScreen.querySelector('.space-y-2');
+        const dotsContainer = isIndexPage ? progressDots : null;
+        
+        // Animate elements out with staggered timing
+        if (activeSpinner) {
+            activeSpinner.style.transform = isIndexPage ? 'scale(0.8) rotate(360deg)' : 'scale(0.8)';
+            activeSpinner.style.opacity = '0';
+            activeSpinner.style.transition = 'all 0.5s ease-in-out';
+        }
+        
+        setTimeout(() => {
+            if (textContainer) {
+                textContainer.style.transform = 'translateY(20px)';
+                textContainer.style.opacity = '0';
+                textContainer.style.transition = 'all 0.4s ease-in-out';
+            }
+        }, 100);
+        
+        setTimeout(() => {
+            if (dotsContainer && isIndexPage) {
+                dotsContainer.style.transform = 'translateY(20px)';
+                dotsContainer.style.opacity = '0';
+                dotsContainer.style.transition = 'all 0.3s ease-in-out';
+            }
+        }, 200);
+        
+        // Final fade out of entire screen
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transform = 'scale(1.05)';
+            loadingScreen.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            
+            // Remove from DOM after animation
+            setTimeout(() => {
+                if (loadingScreen && loadingScreen.parentNode) {
+                    loadingScreen.remove();
+                }
+                // Re-enable scrolling
+                document.body.style.overflow = '';
+            }, 600);
+        }, 400);
+    }
+    
+    // Disable scrolling while preloader is active
+    document.body.style.overflow = 'hidden';
+    
+    // Track when page is fully loaded
+    let hasPageLoaded = false;
+    if (document.readyState === 'complete') {
+        hasPageLoaded = true;
+    } else {
+        window.addEventListener('load', function() {
+            hasPageLoaded = true;
+        });
+    }
+    
+    // Safety fallback: Force hide after maximum time
+    const maxShowTime = isIndexPage ? 6000 : 3000;
+    setTimeout(() => {
+        if (loadingScreen && loadingScreen.style.opacity !== '0') {
+            hidePreloader();
+        }
+    }, maxShowTime);
+
+    // Rest of the existing mobile menu code...
     // Elements
     const mobileMenu = document.getElementById('mobile-menu');
     const mobilePanel = document.getElementById('mobile-panel');

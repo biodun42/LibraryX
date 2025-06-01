@@ -16,8 +16,8 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => 
 {
     // Allow login with username or email
-    options.SignIn.RequireConfirmedAccount = false; // Disable to allow immediate login
-    options.SignIn.RequireConfirmedEmail = false; // Disable email confirmation requirement
+    options.SignIn.RequireConfirmedAccount = false; 
+    options.SignIn.RequireConfirmedEmail = false; 
     options.User.RequireUniqueEmail = true;
     
     // Password settings
@@ -44,10 +44,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
     
     // Enhanced cookie settings for cross-platform compatibility
-    options.Cookie.SameSite = SameSiteMode.Lax; // Allows the cookie to be sent with same-site navigations and with cross-site top-level navigation
+    options.Cookie.SameSite = SameSiteMode.Lax;
     
     // Additional settings for mobile compatibility
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow non-HTTPS on development, require HTTPS in production
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; 
     
     // Custom handling for sign-in failures
     options.Events.OnRedirectToLogin = context =>
