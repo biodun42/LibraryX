@@ -95,14 +95,10 @@
                         </div>
 
                         <!-- Register / Resend Email Links -->
-                        <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-6 text-center sm:text-left mt-4">
+                        <div class="flex justify-center items-center space-y-2 sm:flex-row sm:space-y-0 sm:space-x-6 text-center sm:text-left mt-4">
                             <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl"
                                class="text-sm text-primary-300 hover:text-primary-200 flex justify-center sm:justify-start items-center transition-colors">
                                 <i class="fas fa-user-plus mr-2"></i> Register as a new user
-                            </a>
-                            <a id="resend-confirmation" asp-page="./ResendEmailConfirmation"
-                               class="text-sm text-primary-300 hover:text-primary-200 flex justify-center sm:justify-start items-center transition-colors">
-                                <i class="fas fa-envelope mr-2"></i> Resend email confirmation
                             </a>
                         </div>
                     </form>
